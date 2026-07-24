@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- Rhubarb! app icon — flat, bold, readable at 16px.
+       Palette = the app's own: warm dark bg, sage greens, rhubarb red-pink. -->
+  <defs>
+    <clipPath id="squircle">
+      <rect x="8" y="8" width="240" height="240" rx="56"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background squircle -->
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="#252525"/>
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="none" stroke="#3a3a3a" stroke-width="4"/>
+
+  <g clip-path="url(#squircle)">
+    <!-- Subtle warm glow behind the plant -->
+    <circle cx="128" cy="150" r="98" fill="#38332e" opacity="0.55"/>
+
+    <!-- Left stalk (leans out) -->
+    <g transform="rotate(-16 96 208)">
+      <rect x="84" y="92" width="26" height="126" rx="13" fill="#b8434f"/>
+      <rect x="84" y="92" width="10" height="126" rx="5" fill="#d76a75"/>
+    </g>
+    <!-- Right stalk (leans out) -->
+    <g transform="rotate(16 160 208)">
+      <rect x="146" y="92" width="26" height="126" rx="13" fill="#b8434f"/>
+      <rect x="146" y="92" width="10" height="126" rx="5" fill="#d76a75"/>
+    </g>
+    <!-- Center stalk (tallest) -->
+    <rect x="115" y="74" width="26" height="150" rx="13" fill="#c94f5f"/>
+    <rect x="115" y="74" width="10" height="150" rx="5" fill="#e2848d"/>
+
+    <!-- Leaves: three overlapping sage leaves crowning the stalks -->
+    <path d="M128 20 C 96 26, 76 52, 78 84 C 80 108, 100 118, 128 114 C 156 118, 176 108, 178 84 C 180 52, 160 26, 128 20 Z"
+          fill="#5a8a6a"/>
+    <path d="M74 44 C 46 56, 36 84, 46 106 C 54 122, 76 126, 94 114 C 104 106, 108 88, 102 70 C 96 54, 86 44, 74 44 Z"
+          fill="#7daf8d"/>
+    <path d="M182 44 C 210 56, 220 84, 210 106 C 202 122, 180 126, 162 114 C 152 106, 148 88, 154 70 C 160 54, 170 44, 182 44 Z"
+          fill="#7daf8d"/>
+    <!-- Leaf veins (center leaf) -->
+    <path d="M128 30 L 128 108" stroke="#3f6b50" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <path d="M128 58 C 116 62, 104 72, 96 84 M128 58 C 140 62, 152 72, 160 84"
+          stroke="#3f6b50" stroke-width="5" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>
