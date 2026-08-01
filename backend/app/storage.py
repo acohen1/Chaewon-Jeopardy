@@ -141,7 +141,16 @@ class BoardStore:
     # ------------------------------------------------------------------ #
     #  App defaults (sticky game-rule settings for future boards)        #
     # ------------------------------------------------------------------ #
-    _DEFAULTABLE = ("allow_negatives", "turn_mode", "multi_award", "first_pick")
+    _DEFAULTABLE = (
+        "allow_negatives",
+        "turn_mode",
+        "multi_award",
+        "first_pick",
+        "auto_arm_buzzers",
+        "buzz_timer_seconds",
+        "answer_timer_seconds",
+        "autoplay_media",
+    )
 
     def _defaults_path(self) -> Path:
         return self.data_dir / "defaults.json"
@@ -169,12 +178,19 @@ class BoardStore:
     def create_board(self, name: str) -> Board:
         with self._lock:
             board = new_board(self._new_id(), name.strip() or "Untitled Board", _now())
-            # New games start from the host's last-chosen rules.
+            # New games start from the host's last-chosen rules. Each value is
+            # validated through the model (plain setattr skips validation —
+            # Board has no validate_assignment) so one hand-edited garbage
+            # entry in defaults.json never blocks creation or, worse, writes
+            # an unloadable board; pydantic's lax mode still accepts benign
+            # variants like "20" or "false".
+            base = board.model_dump()
             for key, value in self.get_app_defaults().items():
                 try:
-                    setattr(board, key, value)
+                    validated = Board.model_validate({**base, key: value})
                 except ValueError:
-                    pass  # a stale/corrupt default never blocks creation
+                    continue  # a stale/corrupt default never blocks creation
+                setattr(board, key, getattr(validated, key))
             self._write(board)
         return board
 

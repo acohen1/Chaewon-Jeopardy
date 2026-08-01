@@ -7,7 +7,6 @@
  *  - Review opens the overlay at the question page without touching `used`. */
 import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { clsx } from 'clsx'
 import {
   ArrowLeft,
   Flag,
@@ -397,10 +396,6 @@ export function PlayMode({ boardId }: { boardId: string }) {
                 <RotateCcw className="size-4" />
                 New game
               </Button>
-              <NegativesToggle
-                checked={board.allow_negatives}
-                onChange={(v) => actions.setAllowNegatives.mutate([v])}
-              />
               <Button
                 variant="ghost"
                 onClick={() => setGameSettingsOpen(true)}
@@ -518,6 +513,10 @@ export function PlayMode({ boardId }: { boardId: string }) {
           onBuzzerCommand={session ? live.command : undefined}
           controlPlayer={board.control_player}
           topRowValue={Math.max(0, ...board.row_values)}
+          autoArm={board.auto_arm_buzzers}
+          buzzSeconds={board.buzz_timer_seconds}
+          answerSeconds={board.answer_timer_seconds}
+          autoplayMedia={board.autoplay_media}
         />
       )}
 
@@ -597,40 +596,5 @@ export function PlayMode({ boardId }: { boardId: string }) {
         onCancel={() => setLanPrompt(false)}
       />
     </main>
-  )
-}
-
-function NegativesToggle({
-  checked,
-  onChange,
-}: {
-  checked: boolean
-  onChange: (v: boolean) => void
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className="group flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5"
-    >
-      <span
-        className={clsx(
-          'relative h-4.5 w-8 shrink-0 rounded-full transition-colors duration-150',
-          checked ? 'bg-accent-deep' : 'bg-cell',
-        )}
-      >
-        <span
-          className={clsx(
-            'bg-ink absolute top-0.5 left-0.5 size-3.5 rounded-full transition-transform duration-150',
-            checked && 'translate-x-3.5',
-          )}
-        />
-      </span>
-      <span className="text-ink-muted group-hover:text-ink text-sm transition-colors duration-100">
-        Allow negative scores
-      </span>
-    </button>
   )
 }

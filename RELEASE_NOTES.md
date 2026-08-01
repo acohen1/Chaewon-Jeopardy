@@ -21,6 +21,16 @@ We are Rhubarb now! 🌱 Same game, new name:
 - A proper update screen: watch the install happen instead of wondering if anything is
 - False-start lockout — buzzing before the host arms freezes YOUR buzzer for half a second, so mashing is a losing strategy and clean timing wins
 
+Plus a proper Game settings menu (the old Rules button, all grown up):
+
+- Turn order, buzzers, media, and scoring — one organized place, in the editor and in play
+- Buzzers now arm themselves the moment a clue opens (switch it off to keep the classic read-first-then-arm flow)
+- Two game clocks on the timer ring: an optional time-to-buzz-in window once the buzzers arm, and a time-to-answer countdown once somebody claims it — steal rounds get their own fresh window
+- Slides with a single video or song start playing on reveal, automatically — slides with several clips stay manual so nothing talks over anything (and you can turn it all off)
+- Allow negative scores moved off the top bar and into Game settings
+- Shared boards finally keep their rules — exporting and importing no longer resets turn order and settings
+- As always: whatever you pick becomes the default for your next board
+
 ## v2.3.0
 
 The Party Update — your phones are the buzzers now:

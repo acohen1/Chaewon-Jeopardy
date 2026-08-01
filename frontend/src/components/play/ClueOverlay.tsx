@@ -46,6 +46,15 @@ export interface ClueOverlayProps {
   controlPlayer?: string | null
   /** Highest row value — the Daily Double wager floor. */
   topRowValue?: number
+  /* ---- Game settings (see GameSettingsDialog) ---- */
+  /** Arm the buzzers automatically when the clue page first shows (fresh
+   * opens only — Reviews are walkthroughs and stay manual). */
+  autoArm?: boolean
+  /** Timer durations in seconds; 0 = that timer is off. */
+  buzzSeconds?: number
+  answerSeconds?: number
+  /** Auto-play a slide's media on reveal when it has exactly one clip. */
+  autoplayMedia?: boolean
 }
 
 /** Inline so it reliably beats the variant's utility classes (legacy _flash_button). */
@@ -66,6 +75,10 @@ export function ClueOverlay({
   onBuzzerCommand,
   controlPlayer = null,
   topRowValue = 0,
+  autoArm = false,
+  buzzSeconds = 0,
+  answerSeconds = 0,
+  autoplayMedia = false,
 }: ClueOverlayProps) {
   /* A bonus tile only gets the splash + wager on a FRESH open — the snapshot
    * arrives with used:false exactly then; Review snapshots used:true. */
@@ -87,6 +100,15 @@ export function ClueOverlay({
     volumeOverrides.current.set(assetKey, volume)
   }, [])
 
+  /* Autoplay is once per PAGE per overlay: the keyed SlideView remounts on
+   * every Q↔A flip, and without this latch stepping BACK to the question
+   * would replay its clip — over a live answer, in the worst case. */
+  const autoplayedPages = useRef(new Set<string>())
+  const autoplayThisPage = autoplayMedia && !autoplayedPages.current.has(page)
+  useEffect(() => {
+    if (autoplayMedia) autoplayedPages.current.add(page)
+  }, [autoplayMedia, page])
+
   useEffect(() => () => window.clearTimeout(flashTimer.current), [])
 
   /* Browsers exit fullscreen on Esc BEFORE (or without) delivering the
@@ -104,6 +126,24 @@ export function ClueOverlay({
 
   /* ---- Hosted-session buzzers (no-ops entirely when not hosting) ---- */
   const hosting = buzzer != null && onBuzzerCommand != null
+
+  /* Auto-arm: when the question page first shows on a FRESH open (bonus
+   * tiles arm after the wager is set — the splash isn't buzzable). The shot
+   * is spent the moment a snapshot shows the buzzers armed (or won), NOT
+   * when we send: LiveSocket.send silently drops writes while reconnecting,
+   * so we keep re-sending on snapshot updates until the server confirms.
+   * Once spent, a manual Disarm is respected for the rest of the clue. */
+  const autoArmedRef = useRef(false)
+  useEffect(() => {
+    if (!hosting) return
+    if (buzzer.phase !== 'locked') {
+      autoArmedRef.current = true // armed/won — by us or by hand, shot spent
+      return
+    }
+    if (!autoArm || autoArmedRef.current) return
+    if (page !== 'question' || cell.used) return
+    onBuzzerCommand('arm')
+  }, [autoArm, hosting, page, cell.used, buzzer, onBuzzerCommand])
 
   // Chime once per winner — a fresh 'won' snapshot (or a new winner after a
   // re-arm) means someone just buzzed in.
@@ -213,7 +253,11 @@ export function ClueOverlay({
       <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3">
         <div className="flex items-center justify-start gap-2">
           {/* Timer lives outside the keyed SlideView so it survives Q↔A flips */}
-          <ClueTimer />
+          <ClueTimer
+            buzzSeconds={buzzSeconds}
+            answerSeconds={answerSeconds}
+            buzzer={hosting ? buzzer : null}
+          />
           {hosting && page !== 'bonus' && (
             <BuzzerStrip
               buzzer={buzzer}
@@ -286,6 +330,7 @@ export function ClueOverlay({
             slide={slide}
             boardId={boardId}
             hotkeys
+            autoplay={autoplayThisPage}
             volumeOverrides={volumeOverrides.current}
             onVolumeChange={rememberVolume}
             className="min-h-0 flex-1"

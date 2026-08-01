@@ -87,6 +87,9 @@ TurnMode = Literal["manual", "first-correct", "sequential"]
 MultiAwardRule = Literal["first", "last", "host"]  # first-correct mode only
 FirstPick = Literal["random", "host", "lowest"]  # who starts (non-manual)
 
+# Timer settings are seconds; 0 = off. Kept sane by normalize_board.
+MAX_TIMER_SECONDS = 600
+
 
 class Board(BaseModel):
     id: str
@@ -100,6 +103,15 @@ class Board(BaseModel):
     turn_mode: TurnMode = "first-correct"  # classic game-show flow out of the box
     multi_award: MultiAwardRule = "first"
     first_pick: FirstPick = "random"
+    # Hosted-play pacing (see the frontend Game-settings dialog): buzzers arm
+    # themselves on clue open; a winning buzz starts an answer countdown.
+    # The buzz-in window (armed → first buzz) is opt-in; timers are advisory.
+    auto_arm_buzzers: bool = True
+    buzz_timer_seconds: int = 0  # 0 = off
+    answer_timer_seconds: int = 10  # 0 = off
+    # Slides with exactly ONE playable clip start it on reveal (frontend
+    # enforces the single-clip guard; multi-clip slides stay manual).
+    autoplay_media: bool = True
     # Whose pick it is right now (game state, like scores — None until
     # assigned; always a current player name, normalize_board enforces).
     control_player: str | None = None
@@ -247,6 +259,36 @@ def migrate_board_dict(d: dict, board_id: str, name: str, now: str) -> Board:
         if str(p.get("name", "")).strip()
     ]
 
+    # Game settings ride along on export/import — sanitized value-by-value so
+    # one bad field in a hand-edited file degrades to its default instead of
+    # rejecting the whole import. (Timer ranges are clamped by normalize_board.)
+    def _choice(key: str, valid: tuple[str, ...], default: str) -> str:
+        v = d.get(key, default)
+        return v if v in valid else default
+
+    def _seconds(key: str, default: int) -> int:
+        v = d.get(key, default)
+        if isinstance(v, bool):  # int(True) == 1 — a bool is garbage here
+            return default
+        try:
+            return int(v)
+        except (TypeError, ValueError):
+            return default
+
+    def _flag(key: str, default: bool) -> bool:
+        # bool("false") is True — parse leniently like pydantic's lax mode
+        # (real JSON bools, 0/1, and common string spellings), else default.
+        v = d.get(key, default)
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, (int, str)):
+            s = str(v).strip().lower()
+            if s in ("true", "1", "yes", "on"):
+                return True
+            if s in ("false", "0", "no", "off"):
+                return False
+        return default
+
     return Board(
         id=board_id,
         name=d.get("name", name) or name,
@@ -255,7 +297,14 @@ def migrate_board_dict(d: dict, board_id: str, name: str, now: str) -> Board:
         categories=categories,
         row_values=row_values,
         cells=cells,
-        allow_negatives=d.get("allow_negatives", True),
+        allow_negatives=_flag("allow_negatives", True),
+        turn_mode=_choice("turn_mode", ("manual", "first-correct", "sequential"), "first-correct"),
+        multi_award=_choice("multi_award", ("first", "last", "host"), "first"),
+        first_pick=_choice("first_pick", ("random", "host", "lowest"), "random"),
+        auto_arm_buzzers=_flag("auto_arm_buzzers", True),
+        buzz_timer_seconds=_seconds("buzz_timer_seconds", 0),
+        answer_timer_seconds=_seconds("answer_timer_seconds", 10),
+        autoplay_media=_flag("autoplay_media", True),
         players=players,
         created_at=d.get("created_at", now) or now,
         updated_at=now,
@@ -324,6 +373,11 @@ def normalize_board(board: Board) -> Board:
         p.name == board.control_player for p in board.players
     ):
         board.control_player = None
+
+    # Timers: clamp rather than reject, so a hand-edited or stale document
+    # (imports skip request validation) can never render a nonsense countdown.
+    board.buzz_timer_seconds = max(0, min(MAX_TIMER_SECONDS, board.buzz_timer_seconds))
+    board.answer_timer_seconds = max(0, min(MAX_TIMER_SECONDS, board.answer_timer_seconds))
 
     if len(board.history) > MAX_HISTORY:
         board.history = board.history[-MAX_HISTORY:]

@@ -49,6 +49,22 @@ export type TurnMode = 'manual' | 'first-correct' | 'sequential'
 export type MultiAwardRule = 'first' | 'last' | 'host'
 export type FirstPick = 'random' | 'host' | 'lowest'
 
+/** Partial game-settings update (PUT /settings) — mirror SettingsRequest in
+ * game.py. Absent fields are left as-is server-side; every sent field also
+ * becomes the sticky app default for future boards. */
+export interface GameSettingsPatch {
+  allow_negatives?: boolean
+  turn_mode?: TurnMode
+  multi_award?: MultiAwardRule
+  first_pick?: FirstPick
+  auto_arm_buzzers?: boolean
+  /** Seconds; 0 = off. */
+  buzz_timer_seconds?: number
+  /** Seconds; 0 = off. */
+  answer_timer_seconds?: number
+  autoplay_media?: boolean
+}
+
 export interface Board {
   id: string
   name: string
@@ -61,6 +77,11 @@ export interface Board {
   turn_mode: TurnMode
   multi_award: MultiAwardRule
   first_pick: FirstPick
+  /** Hosted-play pacing + media autoplay — see GameSettingsDialog. */
+  auto_arm_buzzers: boolean
+  buzz_timer_seconds: number
+  answer_timer_seconds: number
+  autoplay_media: boolean
   /** Whose pick it is (game state, like scores); null until assigned. */
   control_player: string | null
   players: Player[]

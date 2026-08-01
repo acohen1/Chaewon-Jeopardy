@@ -135,22 +135,38 @@ export function useStackedAudio(count: number): StackedAudio {
     const lead = longest()
     let start = lead ? lead.currentTime : 0
     if (dmax > 0 && start >= dmax - EPS) start = 0 // everything finished → restart from 0
+    const attempts: Promise<boolean>[] = []
+    const tryPlay = (el: HTMLAudioElement) =>
+      attempts.push(
+        el.play().then(
+          () => true,
+          () => false,
+        ),
+      )
     elements.current.forEach((el, i) => {
       if (!el) return
       const d = Number.isFinite(el.duration) ? el.duration : 0
       if (d === 0) {
         // Metadata still loading: start it now, align once metadata arrives.
         if (start > 0) pendingSeeks.current[i] = start
-        void el.play().catch(() => {})
+        tryPlay(el)
         return
       }
       const t = Math.min(start, d)
       el.currentTime = t // always align every clip to the transport position
-      if (t < d - EPS) void el.play().catch(() => {})
+      if (t < d - EPS) tryPlay(el)
     })
     setPosition(start)
     setPlaying(true)
-  }, [els, longest, maxDuration, setPlaying, setPosition])
+    // Autoplay policies can reject every play() with no play/pause event to
+    // correct us — re-read element reality so the transport can't show a
+    // pause icon over a silent stack (first click would then "pause" it).
+    if (attempts.length) {
+      void Promise.all(attempts).then((started) => {
+        if (!started.some(Boolean)) syncPlayingFromEls()
+      })
+    }
+  }, [els, longest, maxDuration, setPlaying, setPosition, syncPlayingFromEls])
 
   const pause = useCallback(() => {
     for (const el of els()) el.pause()

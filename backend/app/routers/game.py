@@ -13,9 +13,17 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from ..models import Board, FirstPick, MultiAwardRule, Player, ScoreEvent, TurnMode
+from ..models import (
+    MAX_TIMER_SECONDS,
+    Board,
+    FirstPick,
+    MultiAwardRule,
+    Player,
+    ScoreEvent,
+    TurnMode,
+)
 from ..session import manager
 from ..storage import store
 from .boards import get_or_404
@@ -48,6 +56,11 @@ class SettingsRequest(BaseModel):
     turn_mode: TurnMode | None = None
     multi_award: MultiAwardRule | None = None
     first_pick: FirstPick | None = None
+    auto_arm_buzzers: bool | None = None
+    # Seconds, 0 = off (matching the Board fields; normalize_board re-clamps).
+    buzz_timer_seconds: int | None = Field(default=None, ge=0, le=MAX_TIMER_SECONDS)
+    answer_timer_seconds: int | None = Field(default=None, ge=0, le=MAX_TIMER_SECONDS)
+    autoplay_media: bool | None = None
 
 
 class ControlRequest(BaseModel):

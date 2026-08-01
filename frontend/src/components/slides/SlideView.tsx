@@ -3,7 +3,12 @@
  * CONTRACT (consumed by the editor preview and the play overlay):
  *  - Collage arrangement mirrors the legacy app: 1 = full, 2 = side-by-side,
  *    3 = two on top + centered half-width third below, 4 = 2×2.
- *  - NOTHING auto-plays, ever. GIFs animate (that's just how <img> works).
+ *  - Nothing auto-plays by default. The play overlay may pass `autoplay`
+ *    (the Game-settings toggle): the slide's media then starts on mount —
+ *    but ONLY when there is exactly one timed cell (a stacked-audio group
+ *    counts as one). Multi-clip slides always stay manual: auto-playing
+ *    overlapping audio is the reason autoplay was historically banned.
+ *    GIFs animate regardless (that's just how <img> works).
  *  - Each video/audio cell gets its own compact transport (MediaPlayer).
  *  - When `audio_stack` is on and 2+ audio assets exist, they collapse into
  *    ONE cell at the FIRST audio's slot with a single transport driving all
@@ -16,7 +21,7 @@
  *    playback), stacked clips keep per-clip stored volumes, and standalone
  *    audio always starts its transport at full volume.
  */
-import { Fragment, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { ImageOff } from 'lucide-react'
 import { MAX_SLIDE_CELLS, type Slide, type SlideAsset } from '@/types/board'
 import { assetUrl } from '@/lib/media'
@@ -30,6 +35,9 @@ export interface SlideViewProps {
   boardId: string
   /** Enable window-level playback hotkeys (play overlay only). */
   hotkeys?: boolean
+  /** Start the media on mount when the slide has exactly ONE timed cell
+   * (play overlay only — the editor preview must never auto-play). */
+  autoplay?: boolean
   /** Transport volumes remembered across remounts, keyed by asset path
    * (stacked cells: clip paths joined with '|'). Play overlay only. */
   volumeOverrides?: ReadonlyMap<string, number>
@@ -110,6 +118,7 @@ export function SlideView({
   slide,
   boardId,
   hotkeys = false,
+  autoplay = false,
   volumeOverrides,
   onVolumeChange,
   className,
@@ -135,6 +144,19 @@ export function SlideView({
       }),
     [n],
   )
+
+  /* Autoplay (play overlay, Game-settings toggle): mount-only, and only when
+   * exactly one timed cell exists — multi-clip slides stay manual so clips
+   * never talk over each other. Children register their handles in their own
+   * mount effects, which run before this one. restart() on a fresh mount is
+   * a plain "play from the top"; the browser rejecting the play() promise
+   * (strict autoplay policy) leaves the cell idle with its transport shown.
+   * Empty deps = once per mount (StrictMode's double-run just re-plays). */
+  useEffect(() => {
+    if (!autoplay) return
+    if (timedIndices.length === 1) handles.current.get(timedIndices[0])?.restart()
+    // Mount-only: the values are stable for the lifetime of a keyed SlideView.
+  }, [])
 
   /* Active timed cell = most-recently-interacted; default = first timed. */
   const [activeIdx, setActiveIdx] = useState<number | null>(null)

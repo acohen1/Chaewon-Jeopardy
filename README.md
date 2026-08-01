@@ -60,8 +60,9 @@ Press <kbd>?</kbd> (<kbd>Shift</kbd>+<kbd>/</kbd> on US layouts) anywhere in the
 
 - Boards live in a library (create / rename / duplicate / delete from the home page).
 - Export any board as a portable `.rhubarb` save package (board.json + assets); import accepts those, legacy `.jeopardy` packages, plain `.zip`, **and** bare `.json` saves from the original desktop app.
-- Media per slide: up to 4 items, any mix of image / GIF / video / audio. Nothing ever auto-plays.
+- Media per slide: up to 4 items, any mix of image / GIF / video / audio. Slides with a single
+  clip start playing on reveal (Game settings toggle); slides with several clips stay manual.
 
 ## Live play
 
-Host a game from the lobby: friends scan the QR (wifi) or hit "Invite over the internet" for a public link. Phones and laptops become buzzers — first buzz wins, false starts get frozen, turn order follows your chosen rules (Rules button in the editor or play top bar), and Daily-Double-style ★ bonus tiles wager against the real cap.
+Host a game from the lobby: friends scan the QR (wifi) or hit "Invite over the internet" for a public link. Phones and laptops become buzzers — first buzz wins, false starts get frozen, turn order follows your chosen rules (Game settings in the editor or play top bar), and Daily-Double-style ★ bonus tiles wager against the real cap.

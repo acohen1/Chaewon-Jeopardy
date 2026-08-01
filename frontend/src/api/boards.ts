@@ -5,7 +5,7 @@ import { useRef } from 'react'
 
 import { api } from './client'
 import { toast } from '@/components/ui/Toaster'
-import type { Board, BoardSummary, FirstPick, MultiAwardRule, TurnMode } from '@/types/board'
+import type { Board, BoardSummary, GameSettingsPatch } from '@/types/board'
 
 export const boardsQuery = () =>
   queryOptions({
@@ -149,20 +149,11 @@ export function useGameActions(boardId: string) {
     onError,
   })
 
-  const setAllowNegatives = useMutation({
-    mutationFn: ([allow]: [allow: boolean]) =>
-      api.put<Board>(`${base}/settings`, { allow_negatives: allow }),
-    onMutate,
-    onSuccess,
-    onError,
-  })
-
-  /** Game settings (turn-order rules etc.); the server also remembers them
-   * as the defaults for future boards. */
+  /** Game settings (turn order, buzzer pacing, media, scoring); the server
+   * also remembers every sent field as the default for future boards. */
   const setGameSettings = useMutation({
-    mutationFn: ([settings]: [
-      settings: { turn_mode?: TurnMode; multi_award?: MultiAwardRule; first_pick?: FirstPick },
-    ]) => api.put<Board>(`${base}/settings`, settings),
+    mutationFn: ([settings]: [settings: GameSettingsPatch]) =>
+      api.put<Board>(`${base}/settings`, settings),
     onMutate,
     onSuccess,
     onError,
@@ -187,7 +178,6 @@ export function useGameActions(boardId: string) {
     resetScores,
     setCellUsed,
     resetUsed,
-    setAllowNegatives,
     setGameSettings,
     setControl,
   }

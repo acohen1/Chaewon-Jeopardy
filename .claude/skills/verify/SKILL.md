@@ -58,7 +58,10 @@ Selector gotchas learned the hard way:
 
 ## Key behavioral invariants to spot-check
 
-- Nothing auto-plays, ever (assert `video.paused` after opening a clue).
+- Autoplay follows the Game setting (`autoplay_media`, default ON): in the
+  play overlay a slide with exactly ONE timed cell (a stacked group counts
+  as one) starts on reveal; multi-clip slides and the editor preview never
+  auto-play, and each page auto-plays at most once per overlay open.
 - Opening an unused cell marks it used immediately; used cells are inert to
   left-click, right-click → Review / Reset cell.
 - Question-page award: toast + overlay stays; answer-page award: closes.

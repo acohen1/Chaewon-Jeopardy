@@ -28,6 +28,12 @@ const path = require('path');
 
 const isDev = process.env.RHUBARB_DEV === '1' || !app.isPackaged;
 
+// Slides may auto-play media with sound (the "Auto-play media" game setting).
+// Chromium's default policy wants a user gesture first; in the desktop app
+// the host's tile click IS the gesture, but it isn't always propagated as
+// user activation — so allow it outright. Must be set before app 'ready'.
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+
 // One-time rename-era migration: this app was "Chaewon Jeopardy" through
 // v2.3.0. Carry the whole data dir (settings, shell.log, and the default
 // board library inside it) to the Rhubarb name so nobody loses a thing.

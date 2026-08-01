@@ -100,13 +100,17 @@ def save_board(board_id: str, board: Board) -> Board:
             if r < len(current.cells) and c < len(current.cells[r]):
                 cell.used = current.cells[r][c].used
     board.history = current.history  # score log is game state, never editor's
-    # Turn rules + control are set in PLAY mode — a stale editor draft must
-    # not revert them mid-game (same reasoning as scores/used above).
+    # Game settings + control are set through the settings endpoint — a stale
+    # editor draft must not revert them (same reasoning as scores/used above).
     board.turn_mode = current.turn_mode
     board.multi_award = current.multi_award
     board.first_pick = current.first_pick
     board.control_player = current.control_player
     board.allow_negatives = current.allow_negatives
+    board.auto_arm_buzzers = current.auto_arm_buzzers
+    board.buzz_timer_seconds = current.buzz_timer_seconds
+    board.answer_timer_seconds = current.answer_timer_seconds
+    board.autoplay_media = current.autoplay_media
 
     saved = store.save_board(board)
     manager.notify_scores(board_id)  # live clients see the merged roster

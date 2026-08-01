@@ -51,7 +51,7 @@ export function HotkeysDialog({ open, onClose }: { open: boolean; onClose: () =>
           rows={[
             { keys: ['A'], label: 'Reveal the answer' },
             { keys: ['Q'], label: 'Back to the question' },
-            { keys: ['T'], label: 'Start / restart the timer' },
+            { keys: ['T'], label: 'Start / restart the timer (durations in Game settings)' },
             { keys: ['B'], label: 'Arm / re-arm buzzers (hosted games)' },
             { keys: ['C'], label: 'Correct — award the buzz winner (hosted games)' },
             { keys: ['W'], label: 'Wrong — deduct & re-arm the rest (hosted games)' },
@@ -98,10 +98,6 @@ export function HotkeysDialog({ open, onClose }: { open: boolean; onClose: () =>
           <li>
             <b className="text-ink font-semibold">Click a score</b> — edit it directly (host
             corrections)
-          </li>
-          <li>
-            <b className="text-ink font-semibold">Right-click the timer</b> — pick 10 / 20 / 30 /
-            60 seconds
           </li>
           <li>
             <b className="text-ink font-semibold">Right-click a library card</b> — rename,
