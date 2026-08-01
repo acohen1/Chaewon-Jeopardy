@@ -11,10 +11,10 @@ import { clsx } from 'clsx'
 import {
   ArrowLeft,
   Flag,
-  ListOrdered,
   Minimize2,
   Presentation,
   RotateCcw,
+  SlidersHorizontal,
   Users,
   Volume2,
   VolumeX,
@@ -42,7 +42,7 @@ import { ClueOverlay } from './ClueOverlay'
 import { JoinPanel } from './JoinPanel'
 import { LobbyScreen } from './LobbyScreen'
 import { PodiumOverlay } from './PodiumOverlay'
-import { RulesDialog } from './RulesDialog'
+import { GameSettingsDialog } from './GameSettingsDialog'
 import { Scoreboard } from './Scoreboard'
 
 interface OverlayState {
@@ -70,7 +70,7 @@ export function PlayMode({ boardId }: { boardId: string }) {
   const [menu, setMenu] = useState<ContextMenuState | null>(null)
   const [confirmNewGame, setConfirmNewGame] = useState(false)
   const [confirmScoreReset, setConfirmScoreReset] = useState(false)
-  const [rulesOpen, setRulesOpen] = useState(false)
+  const [gameSettingsOpen, setGameSettingsOpen] = useState(false)
   const [presenting, setPresenting] = useState(false)
   const [podium, setPodium] = useState(false)
   const [sfxMuted, toggleSfxMuted] = useSfxMuted()
@@ -367,7 +367,7 @@ export function PlayMode({ boardId }: { boardId: string }) {
           onStartRemote={desktop ? () => void startRemote() : undefined}
           onStopRemote={stopRemote}
           command={live.command}
-          onOpenRules={() => setRulesOpen(true)}
+          onOpenGameSettings={() => setGameSettingsOpen(true)}
           onStart={(firstPick) => {
             if (firstPick) actions.setControl.mutate([firstPick])
             setInLobby(false)
@@ -401,9 +401,13 @@ export function PlayMode({ boardId }: { boardId: string }) {
                 checked={board.allow_negatives}
                 onChange={(v) => actions.setAllowNegatives.mutate([v])}
               />
-              <Button variant="ghost" onClick={() => setRulesOpen(true)} title="Game rules — turn order">
-                <ListOrdered className="size-4" />
-                Rules
+              <Button
+                variant="ghost"
+                onClick={() => setGameSettingsOpen(true)}
+                title="Game settings — rules and options"
+              >
+                <SlidersHorizontal className="size-4" />
+                Game settings
               </Button>
             </>
           )}
@@ -551,11 +555,11 @@ export function PlayMode({ boardId }: { boardId: string }) {
 
       <ContextMenu state={menu} onClose={() => setMenu(null)} />
 
-      <RulesDialog
-        open={rulesOpen}
+      <GameSettingsDialog
+        open={gameSettingsOpen}
         board={board}
-        onChange={(rules) => actions.setRules.mutate([rules])}
-        onClose={() => setRulesOpen(false)}
+        onChange={(settings) => actions.setGameSettings.mutate([settings])}
+        onClose={() => setGameSettingsOpen(false)}
       />
 
       <ConfirmDialog

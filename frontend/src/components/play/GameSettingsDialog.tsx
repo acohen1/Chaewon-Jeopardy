@@ -1,16 +1,17 @@
-/** RulesDialog — turn-order rules for this board. Choices apply instantly
- * (server-authoritative) and the server remembers them as the defaults for
- * every future board. Conditional sections: multi-award transfer only
- * matters under First-correct; first pick only when a mode is automatic. */
+/** GameSettingsDialog — per-board game settings (turn-order rules today,
+ * room to grow). Choices apply instantly (server-authoritative) and the
+ * server remembers them as the defaults for every future board. Conditional
+ * sections: multi-award transfer only matters under First-correct; first
+ * pick only when a mode is automatic. */
 import { clsx } from 'clsx'
 
 import { Dialog } from '@/components/ui/Dialog'
 import type { Board, FirstPick, MultiAwardRule, TurnMode } from '@/types/board'
 
-export interface RulesDialogProps {
+export interface GameSettingsDialogProps {
   open: boolean
   board: Board
-  onChange: (rules: {
+  onChange: (settings: {
     turn_mode?: TurnMode
     multi_award?: MultiAwardRule
     first_pick?: FirstPick
@@ -72,9 +73,9 @@ const FIRST_PICK: { value: FirstPick; label: string; hint: string }[] = [
   },
 ]
 
-export function RulesDialog({ open, board, onChange, onClose }: RulesDialogProps) {
+export function GameSettingsDialog({ open, board, onChange, onClose }: GameSettingsDialogProps) {
   return (
-    <Dialog open={open} onClose={onClose} title="Game rules" className="w-full max-w-md">
+    <Dialog open={open} onClose={onClose} title="Game settings" className="w-full max-w-md">
       <div className="max-h-[70vh] space-y-5 overflow-y-auto px-5 py-4">
         <RuleGroup
           idPrefix="rule-turn"

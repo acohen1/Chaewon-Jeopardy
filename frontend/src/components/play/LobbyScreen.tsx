@@ -8,7 +8,7 @@
  * Purely presentational — session lifecycle and control mutations stay in
  * PlayMode (onHostGame / onEndSession / onStart). */
 import { clsx } from 'clsx'
-import { Globe, ListOrdered, Pencil, Play, Presentation, UserX, Wifi } from 'lucide-react'
+import { Globe, Pencil, Play, Presentation, SlidersHorizontal, UserX, Wifi } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 
@@ -32,7 +32,7 @@ export interface LobbyScreenProps {
   onStartRemote?: () => void
   onStopRemote: () => void
   command: (command: HostCommand, target?: string) => void
-  onOpenRules: () => void
+  onOpenGameSettings: () => void
   /** Leave the lobby; `firstPick` is the roulette/lowest winner (or null). */
   onStart: (firstPick: string | null) => void
   onTogglePresent: () => void
@@ -56,7 +56,7 @@ export function LobbyScreen({
   onStartRemote,
   onStopRemote,
   command,
-  onOpenRules,
+  onOpenGameSettings,
   onStart,
   onTogglePresent,
 }: LobbyScreenProps) {
@@ -138,9 +138,9 @@ export function LobbyScreen({
           <p className="text-ink-muted mt-0.5 text-xs">{board.name}</p>
         </div>
         <div className="flex justify-end gap-2">
-          <Button variant="ghost" onClick={onOpenRules} title="Game rules — turn order">
-            <ListOrdered className="size-4" />
-            Rules
+          <Button variant="ghost" onClick={onOpenGameSettings} title="Game settings — rules and options">
+            <SlidersHorizontal className="size-4" />
+            Game settings
           </Button>
           <Button variant="soft" onClick={onTogglePresent} title="Present mode [P]">
             <Presentation className="size-4" />

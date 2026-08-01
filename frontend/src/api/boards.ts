@@ -157,11 +157,12 @@ export function useGameActions(boardId: string) {
     onError,
   })
 
-  /** Turn-order rules; the server also remembers them for future boards. */
-  const setRules = useMutation({
-    mutationFn: ([rules]: [
-      rules: { turn_mode?: TurnMode; multi_award?: MultiAwardRule; first_pick?: FirstPick },
-    ]) => api.put<Board>(`${base}/settings`, rules),
+  /** Game settings (turn-order rules etc.); the server also remembers them
+   * as the defaults for future boards. */
+  const setGameSettings = useMutation({
+    mutationFn: ([settings]: [
+      settings: { turn_mode?: TurnMode; multi_award?: MultiAwardRule; first_pick?: FirstPick },
+    ]) => api.put<Board>(`${base}/settings`, settings),
     onMutate,
     onSuccess,
     onError,
@@ -187,7 +188,7 @@ export function useGameActions(boardId: string) {
     setCellUsed,
     resetUsed,
     setAllowNegatives,
-    setRules,
+    setGameSettings,
     setControl,
   }
 }

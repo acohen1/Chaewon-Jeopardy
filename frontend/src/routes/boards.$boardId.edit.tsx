@@ -8,7 +8,7 @@ import { CellEditorDialog } from '@/components/editor/CellEditorDialog'
 import { EditorToolbar } from '@/components/editor/EditorToolbar'
 import { PlayerPanel } from '@/components/editor/PlayerPanel'
 import { useBoardDraft } from '@/components/editor/useBoardDraft'
-import { RulesDialog } from '@/components/play/RulesDialog'
+import { GameSettingsDialog } from '@/components/play/GameSettingsDialog'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { toast } from '@/components/ui/Toaster'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -37,11 +37,11 @@ function Editor({ initial }: { initial: Board }) {
   const [editing, setEditing] = useState<{ row: number; col: number } | null>(null)
   // Non-null while the "some cells have no answer" pre-play warning is up.
   const [playWarning, setPlayWarning] = useState<string | null>(null)
-  // Game rules are PLAY-mode state (the draft's autosave can't touch them by
-  // design) — read the live query cache and mutate via the settings endpoint.
+  // Game settings are PLAY-mode state (the draft's autosave can't touch them
+  // by design) — read the live query cache and mutate via the settings endpoint.
   const { data: liveBoard } = useSuspenseQuery(boardQuery(board.id))
   const gameActions = useGameActions(board.id)
-  const [rulesOpen, setRulesOpen] = useState(false)
+  const [gameSettingsOpen, setGameSettingsOpen] = useState(false)
   usePageTitle(`${board.name} · Edit — Rhubarb`)
 
   // Ctrl/Cmd+S — flush the debounced autosave right now. useHotkeys skips all
@@ -188,7 +188,7 @@ function Editor({ initial }: { initial: Board }) {
         onRedo={redo}
         onRename={(name) => update((b) => ({ ...b, name }))}
         onResize={onResize}
-        onRules={() => setRulesOpen(true)}
+        onGameSettings={() => setGameSettingsOpen(true)}
         onPlay={onPlay}
       />
 
@@ -209,11 +209,11 @@ function Editor({ initial }: { initial: Board }) {
         />
       </div>
 
-      <RulesDialog
-        open={rulesOpen}
+      <GameSettingsDialog
+        open={gameSettingsOpen}
         board={liveBoard}
-        onChange={(rules) => gameActions.setRules.mutate([rules])}
-        onClose={() => setRulesOpen(false)}
+        onChange={(settings) => gameActions.setGameSettings.mutate([settings])}
+        onClose={() => setGameSettingsOpen(false)}
       />
 
       <ConfirmDialog
