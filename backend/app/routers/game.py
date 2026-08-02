@@ -60,6 +60,8 @@ class SettingsRequest(BaseModel):
     # Seconds, 0 = off (matching the Board fields; normalize_board re-clamps).
     buzz_timer_seconds: int | None = Field(default=None, ge=0, le=MAX_TIMER_SECONDS)
     answer_timer_seconds: int | None = Field(default=None, ge=0, le=MAX_TIMER_SECONDS)
+    # A hand-started clock always has a length — 0 is not meaningful here.
+    manual_timer_seconds: int | None = Field(default=None, ge=1, le=MAX_TIMER_SECONDS)
     autoplay_media: bool | None = None
 
 

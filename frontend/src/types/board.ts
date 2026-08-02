@@ -62,6 +62,8 @@ export interface GameSettingsPatch {
   buzz_timer_seconds?: number
   /** Seconds; 0 = off. */
   answer_timer_seconds?: number
+  /** Length of a hand-started clock (T) when the automatic one is off; ≥1. */
+  manual_timer_seconds?: number
   autoplay_media?: boolean
 }
 
@@ -81,6 +83,7 @@ export interface Board {
   auto_arm_buzzers: boolean
   buzz_timer_seconds: number
   answer_timer_seconds: number
+  manual_timer_seconds: number
   autoplay_media: boolean
   /** Whose pick it is (game state, like scores); null until assigned. */
   control_player: string | null

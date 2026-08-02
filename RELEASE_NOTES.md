@@ -27,6 +27,7 @@ We are Rhubarb now! 🌱 Same game, new name:
 - The clue screen got its TV moment: the timer is now a big draining ring (sage for buzz-in, amber for the answer clock) that turns urgent in the last seconds — and when somebody buzzes, their name slams onto the screen with couch-sized Correct / Wrong buttons, all in one corner card that never covers the question
 - Fixed: a wrong-answer lockout no longer follows a player into later questions — every fresh clue reopens the buzzers to everyone
 - Both game clocks now take any custom length (1–600s) via a Custom… field in Game settings, not just the preset pills
+- The manual timer is now its own setting: with the buzz-in clock off, pressing T runs a hand-started buzz window at whatever length you choose (default 30s) — no more borrowing the answer clock's length
 
 Plus a proper Game settings menu (the old Rules button, all grown up):
 

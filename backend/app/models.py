@@ -109,6 +109,11 @@ class Board(BaseModel):
     auto_arm_buzzers: bool = True
     buzz_timer_seconds: int = 0  # 0 = off
     answer_timer_seconds: int = 10  # 0 = off
+    # Length of a clock the host starts BY HAND (T / clicking the ring) when
+    # the relevant automatic clock is off — the manual timer is a first-class
+    # tool, not a borrowed fallback. Never 0: "off" makes no sense for an
+    # explicitly started clock.
+    manual_timer_seconds: int = 30
     # Slides with exactly ONE playable clip start it on reveal (frontend
     # enforces the single-clip guard; multi-clip slides stay manual).
     autoplay_media: bool = True
@@ -304,6 +309,7 @@ def migrate_board_dict(d: dict, board_id: str, name: str, now: str) -> Board:
         auto_arm_buzzers=_flag("auto_arm_buzzers", True),
         buzz_timer_seconds=_seconds("buzz_timer_seconds", 0),
         answer_timer_seconds=_seconds("answer_timer_seconds", 10),
+        manual_timer_seconds=_seconds("manual_timer_seconds", 30),
         autoplay_media=_flag("autoplay_media", True),
         players=players,
         created_at=d.get("created_at", now) or now,
@@ -378,6 +384,7 @@ def normalize_board(board: Board) -> Board:
     # (imports skip request validation) can never render a nonsense countdown.
     board.buzz_timer_seconds = max(0, min(MAX_TIMER_SECONDS, board.buzz_timer_seconds))
     board.answer_timer_seconds = max(0, min(MAX_TIMER_SECONDS, board.answer_timer_seconds))
+    board.manual_timer_seconds = max(1, min(MAX_TIMER_SECONDS, board.manual_timer_seconds))
 
     if len(board.history) > MAX_HISTORY:
         board.history = board.history[-MAX_HISTORY:]

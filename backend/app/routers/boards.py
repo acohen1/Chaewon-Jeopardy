@@ -113,6 +113,7 @@ def save_board(board_id: str, board: Board) -> Board:
     board.auto_arm_buzzers = current.auto_arm_buzzers
     board.buzz_timer_seconds = current.buzz_timer_seconds
     board.answer_timer_seconds = current.answer_timer_seconds
+    board.manual_timer_seconds = current.manual_timer_seconds
     board.autoplay_media = current.autoplay_media
 
     saved = store.save_board(board)

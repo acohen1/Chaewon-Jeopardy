@@ -516,6 +516,7 @@ export function PlayMode({ boardId }: { boardId: string }) {
           autoArm={board.auto_arm_buzzers}
           buzzSeconds={board.buzz_timer_seconds}
           answerSeconds={board.answer_timer_seconds}
+          manualSeconds={board.manual_timer_seconds}
           autoplayMedia={board.autoplay_media}
         />
       )}

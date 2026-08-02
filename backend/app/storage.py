@@ -149,6 +149,7 @@ class BoardStore:
         "auto_arm_buzzers",
         "buzz_timer_seconds",
         "answer_timer_seconds",
+        "manual_timer_seconds",
         "autoplay_media",
     )
 

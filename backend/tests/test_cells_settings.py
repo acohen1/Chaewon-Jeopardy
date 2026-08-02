@@ -57,11 +57,23 @@ def test_settings_allow_negatives(client, board):
 # ------------------------------------------------------------------ #
 def test_settings_defaults(client, board):
     """Fresh board (no app defaults saved): auto-arm on, answer clock 10s,
-    buzz-in window off, autoplay on."""
+    buzz-in window off, manual clock 30s, autoplay on."""
     assert board["auto_arm_buzzers"] is True
     assert board["buzz_timer_seconds"] == 0
     assert board["answer_timer_seconds"] == 10
+    assert board["manual_timer_seconds"] == 30
     assert board["autoplay_media"] is True
+
+
+def test_manual_timer_setting_sticky_and_validated(client, board):
+    bid = board["id"]
+    r = client.put(f"/api/boards/{bid}/settings", json={"manual_timer_seconds": 45})
+    assert r.status_code == 200 and r.json()["manual_timer_seconds"] == 45
+    # 0 is meaningless for a hand-started clock — rejected, not stored.
+    assert client.put(f"/api/boards/{bid}/settings",
+                      json={"manual_timer_seconds": 0}).status_code == 422
+    fresh = client.post("/api/boards", json={"name": "Next"}).json()
+    assert fresh["manual_timer_seconds"] == 45  # sticky
 
 
 def test_settings_partial_put_leaves_others_alone(client, board):

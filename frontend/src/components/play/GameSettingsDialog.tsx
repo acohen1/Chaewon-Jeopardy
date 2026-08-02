@@ -79,9 +79,10 @@ const FIRST_PICK: { value: FirstPick; label: string; hint: string }[] = [
   },
 ]
 
-/** Pill choices for the two timers — 0 renders as "Off". */
+/** Pill choices for the timers — 0 renders as "Off". */
 const BUZZ_SECONDS = [0, 10, 15, 20, 30]
 const ANSWER_SECONDS = [0, 5, 10, 15, 20, 30]
+const MANUAL_SECONDS = [10, 15, 20, 30, 45, 60] // hand-started — no Off
 
 export function GameSettingsDialog({ open, board, onChange, onClose }: GameSettingsDialogProps) {
   return (
@@ -130,6 +131,16 @@ export function GameSettingsDialog({ open, board, onChange, onClose }: GameSetti
             value={board.buzz_timer_seconds}
             onSelect={(v) => onChange({ buzz_timer_seconds: v })}
           />
+          {board.buzz_timer_seconds === 0 && (
+            <PillRow
+              testid="setting-manual-timer"
+              label="Manual timer"
+              hint="With no automatic buzz-in clock, this is how long a clock you start yourself runs — press T or click the ring."
+              options={MANUAL_SECONDS}
+              value={board.manual_timer_seconds}
+              onSelect={(v) => onChange({ manual_timer_seconds: v })}
+            />
+          )}
           <PillRow
             testid="setting-answer-timer"
             label="Time to answer"

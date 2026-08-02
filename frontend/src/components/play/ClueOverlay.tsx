@@ -53,6 +53,8 @@ export interface ClueOverlayProps {
   /** Timer durations in seconds; 0 = that timer is off. */
   buzzSeconds?: number
   answerSeconds?: number
+  /** Hand-started clock length when the automatic one is off (≥1). */
+  manualSeconds?: number
   /** Auto-play a slide's media on reveal when it has exactly one clip. */
   autoplayMedia?: boolean
 }
@@ -78,6 +80,7 @@ export function ClueOverlay({
   autoArm = false,
   buzzSeconds = 0,
   answerSeconds = 0,
+  manualSeconds = 30,
   autoplayMedia = false,
 }: ClueOverlayProps) {
   /* A bonus tile only gets the splash + wager on a FRESH open — the snapshot
@@ -284,6 +287,7 @@ export function ClueOverlay({
               <ClueTimer
                 buzzSeconds={buzzSeconds}
                 answerSeconds={answerSeconds}
+                manualSeconds={manualSeconds}
                 buzzer={buzzer}
                 hideIdle
               />
@@ -300,6 +304,7 @@ export function ClueOverlay({
             <ClueTimer
               buzzSeconds={buzzSeconds}
               answerSeconds={answerSeconds}
+              manualSeconds={manualSeconds}
               buzzer={hosting ? buzzer : null}
             />
           )}

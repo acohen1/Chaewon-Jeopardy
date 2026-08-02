@@ -30,6 +30,9 @@ export interface ClueTimerProps {
   /** Game-settings durations in seconds; 0 disables that timer. */
   buzzSeconds: number
   answerSeconds: number
+  /** Length of a HAND-started clock when the preferred automatic clock is
+   * off (≥1) — the manual timer is its own setting, never a borrowed one. */
+  manualSeconds: number
   /** Live buzzer state while hosting; null/undefined = couch play. */
   buzzer?: BuzzerState | null
   /** Skip the compact idle button (the hosted stage cluster provides its own
@@ -43,7 +46,13 @@ type TimerKind = 'buzz' | 'answer'
 const RADIUS = 15.5
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
-export function ClueTimer({ buzzSeconds, answerSeconds, buzzer, hideIdle = false }: ClueTimerProps) {
+export function ClueTimer({
+  buzzSeconds,
+  answerSeconds,
+  manualSeconds,
+  buzzer,
+  hideIdle = false,
+}: ClueTimerProps) {
   const [status, setStatus] = useState<'idle' | 'running' | 'expired'>('idle')
   const [kind, setKind] = useState<TimerKind>('answer')
   const [duration, setDuration] = useState(0)
@@ -52,13 +61,20 @@ export function ClueTimer({ buzzSeconds, answerSeconds, buzzer, hideIdle = false
   const intervalRef = useRef<number | undefined>(undefined)
   useEffect(() => () => window.clearInterval(intervalRef.current), [])
 
+  // Whether the RUNNING clock's length came from its kind's setting (auto
+  // starts, and manual starts that mirror a configured length) — only those
+  // may be killed by that setting dropping to 0 mid-count. A clock running
+  // at the dedicated manual length has no owning setting to be disabled by.
+  const fromSettingRef = useRef(false)
+
   const stop = () => {
     window.clearInterval(intervalRef.current)
     setStatus('idle')
   }
 
-  const start = (k: TimerKind, secs: number) => {
+  const start = (k: TimerKind, secs: number, fromSetting = true) => {
     if (secs <= 0) return
+    fromSettingRef.current = fromSetting
     window.clearInterval(intervalRef.current)
     const end = Date.now() + secs * 1000
     setKind(k)
@@ -107,30 +123,33 @@ export function ClueTimer({ buzzSeconds, answerSeconds, buzzer, hideIdle = false
    * phantom time-up beep behind a hidden ring. */
   const runningSecs = kind === 'buzz' ? buzzSeconds : answerSeconds
   useEffect(() => {
-    if (status !== 'idle' && runningSecs <= 0) stop()
+    if (status !== 'idle' && fromSettingRef.current && runningSecs <= 0) stop()
   }, [status, runningSecs])
 
-  /* ---- Manual start/restart (T / click): time the current moment ---- */
+  /* ---- Manual start/restart (T / click): time the current moment. The
+   * KIND follows the moment (buzz window while armed, answer clock while a
+   * buzz is held or in couch play); the LENGTH is the automatic clock's when
+   * it's configured, else the dedicated manual length — never a cross-kind
+   * borrow (an armed clue with buzz-in off used to start a mislabeled
+   * "ANSWER" clock at the answer setting's length). ---- */
   const manualStart = () => {
     const preferred: TimerKind = phase === 'won' ? 'answer' : phase ? 'buzz' : 'answer'
-    const secsFor = (k: TimerKind) => (k === 'buzz' ? buzzSeconds : answerSeconds)
-    const k = secsFor(preferred) > 0 ? preferred : preferred === 'buzz' ? 'answer' : 'buzz'
-    start(k, secsFor(k))
+    const configured = preferred === 'buzz' ? buzzSeconds : answerSeconds
+    if (configured > 0) start(preferred, configured)
+    else start(preferred, manualSeconds, false) // dedicated manual length
   }
 
-  const anyEnabled = buzzer != null ? buzzSeconds > 0 || answerSeconds > 0 : answerSeconds > 0
+  // Hosted: a hand-started clock is always available (that's what the manual
+  // length is for). Couch keeps the old rule — answer Off = no timer UI.
+  const anyEnabled = buzzer != null || answerSeconds > 0
   useHotkeys({ t: manualStart }, { enabled: anyEnabled })
 
   if (!anyEnabled) return null
 
   if (status === 'idle') {
     if (hideIdle) return null
-    const idleSecs =
-      phase === 'won'
-        ? answerSeconds || buzzSeconds
-        : phase
-          ? buzzSeconds || answerSeconds
-          : answerSeconds || buzzSeconds
+    const preferredSecs = phase === 'won' ? answerSeconds : phase ? buzzSeconds : answerSeconds
+    const idleSecs = preferredSecs > 0 ? preferredSecs : manualSeconds
     return (
       <Button variant="ghost" size="sm" onClick={manualStart} title="Start timer [T]">
         <Timer className="size-4" />
