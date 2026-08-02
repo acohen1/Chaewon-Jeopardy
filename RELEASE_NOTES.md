@@ -24,6 +24,7 @@ We are Rhubarb now! 🌱 Same game, new name:
 - Tidy media now speaks human: sizes show as KB / MB / GB instead of "1433.6 MB", and the confirm tells you exactly how much you'll get back (nothing is ever deleted automatically — cleanup stays your call)
 - New game and the podium's Play again now truly start fresh: the roster clears too — connected phones keep their seats and come back at $0 (the score-only and board-only reset tools are unchanged)
 - The editor's board grid now fills the window: a short board stretches to use the space instead of huddling tiny at the top
+- The clue screen got its TV moment: the timer is now a big draining ring (sage for buzz-in, amber for the answer clock) that turns urgent in the last seconds — and when somebody buzzes, their name slams onto the screen with couch-sized Correct / Wrong buttons, all in one corner card that never covers the question
 
 Plus a proper Game settings menu (the old Rules button, all grown up):
 

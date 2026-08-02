@@ -251,21 +251,49 @@ export function ClueOverlay({
     <div className="bg-bg-deep animate-fade-in fixed inset-0 z-40 flex flex-col gap-5 px-12 py-8">
       {/* Top bar — nav flanking the value badge */}
       <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3">
-        <div className="flex items-center justify-start gap-2">
-          {/* Timer lives outside the keyed SlideView so it survives Q↔A flips */}
-          <ClueTimer
-            buzzSeconds={buzzSeconds}
-            answerSeconds={answerSeconds}
-            buzzer={hosting ? buzzer : null}
-          />
-          {hosting && page !== 'bonus' && (
-            <BuzzerStrip
-              buzzer={buzzer}
-              command={onBuzzerCommand}
-              stake={stake}
-              allowNegatives={allowNegatives}
-              onCorrect={resolveCorrect}
-              onWrong={resolveWrong}
+        <div className="flex min-w-0 items-center justify-start gap-3">
+          {/* THE STAGE CLUSTER — timer ring + buzzer surfaces share one card
+              so they read as a single component (the answer clock "docks"
+              beside the winner). The band keeps a constant min-height for
+              the whole hosted clue, so armed→won→steal cycles animate with
+              transforms only and never reflow the slide below. The timer
+              stays outside the keyed SlideView so it survives Q↔A flips. */}
+          {hosting && page !== 'bonus' ? (
+            <div
+              className={clsx(
+                'relative flex min-h-28 min-w-0 items-center gap-4 rounded-2xl border px-4 py-3 transition-colors duration-150',
+                buzzer.phase === 'won'
+                  ? 'border-accent/60 bg-accent/10'
+                  : 'border-line-soft bg-surface/40',
+              )}
+            >
+              {buzzer.phase === 'won' && (
+                /* One-shot radial flash — keyed by winner so a steal re-fires it */
+                <span
+                  key={buzzer.winner}
+                  aria-hidden
+                  className="bg-accent/40 motion-safe:animate-flash-burst pointer-events-none absolute inset-0 rounded-2xl"
+                />
+              )}
+              <ClueTimer
+                buzzSeconds={buzzSeconds}
+                answerSeconds={answerSeconds}
+                buzzer={buzzer}
+              />
+              <BuzzerStrip
+                buzzer={buzzer}
+                command={onBuzzerCommand}
+                stake={stake}
+                allowNegatives={allowNegatives}
+                onCorrect={resolveCorrect}
+                onWrong={resolveWrong}
+              />
+            </div>
+          ) : (
+            <ClueTimer
+              buzzSeconds={buzzSeconds}
+              answerSeconds={answerSeconds}
+              buzzer={hosting ? buzzer : null}
             />
           )}
           {page === 'answer' && (
@@ -380,9 +408,13 @@ export function ClueOverlay({
   )
 }
 
-/** Host-side buzzer controls for a hosted session — locked → arm button,
- * armed → pulsing chip + disarm, won → winner banner with one-click
- * Correct/Wrong resolution (C/W hotkeys) plus a ghost Reset. */
+/** Host-side buzzer surfaces for a hosted session, rendered inside the
+ * overlay's stage cluster next to the timer ring — locked → arm button,
+ * armed → pulsing armed banner + disarm, won → the TV moment: the winner's
+ * name slams in (springy overshoot; the cluster fires a radial flash) over
+ * the also-buzzed queue, with couch-visible Correct / Wrong resolution
+ * (same C/W hotkeys) and a ghost Reset. Identical behavior to the old
+ * strip — this is presentation only; all motion is motion-safe. */
 function BuzzerStrip({
   buzzer,
   command,
@@ -401,8 +433,8 @@ function BuzzerStrip({
 }) {
   if (buzzer.phase === 'locked') {
     return (
-      <Button variant="primary" size="sm" onClick={() => command('arm')} title="Arm buzzers [B]">
-        <Zap className="size-3.5" />
+      <Button variant="primary" size="lg" onClick={() => command('arm')} title="Arm buzzers [B]">
+        <Zap className="size-5" />
         Arm buzzers
         <Kbd>B</Kbd>
       </Button>
@@ -411,40 +443,37 @@ function BuzzerStrip({
 
   if (buzzer.phase === 'armed') {
     return (
-      <div className="flex items-center gap-2">
-        <span className="border-accent/60 bg-accent/15 text-accent inline-flex animate-pulse items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold">
-          <Zap className="size-3.5" />
+      <div className="flex min-w-0 flex-col items-start gap-1.5">
+        <span className="text-accent motion-safe:animate-pulse inline-flex items-center gap-2 text-xl font-bold">
+          <Zap className="size-6" fill="currentColor" />
           Buzzers armed
-          {buzzer.lockedOut.length > 0 && (
-            <span className="text-ink-muted font-normal">
-              · {buzzer.lockedOut.length} locked out
-            </span>
-          )}
         </span>
-        <Button variant="ghost" size="sm" onClick={() => command('disarm')}>
-          Disarm
-        </Button>
+        <span className="text-ink-muted flex items-center gap-2 text-xs">
+          {buzzer.lockedOut.length > 0 && <>{buzzer.lockedOut.length} locked out ·</>}
+          <Button variant="ghost" size="sm" onClick={() => command('disarm')}>
+            Disarm
+          </Button>
+        </span>
       </div>
     )
   }
 
-  /* won — the winner takes over the strip */
+  /* won — the winner takes over the stage. Keyed by winner so a steal's new
+   * winner re-slams; the layout box is stable (the cluster reserves height),
+   * so the spring animates transforms only and never shoves the slide. */
   return (
-    <div className="border-accent/50 bg-accent/15 animate-scale-in flex min-w-0 items-center gap-3 rounded-xl border px-3 py-1.5">
-      <div className="min-w-0">
-        <p className="text-accent-bright truncate text-sm font-bold">
-          ⚡ {buzzer.winner} buzzed in!
-        </p>
-        {buzzer.order.length > 1 && (
-          <p className="text-ink-muted truncate text-[11px]">
-            also: {buzzer.order.slice(1).join(', ')}
-          </p>
-        )}
-      </div>
-      <div className="flex shrink-0 items-center gap-1.5">
+    <div key={buzzer.winner} className="motion-safe:animate-slam-in relative min-w-0">
+      <p className="text-accent-bright font-display truncate text-3xl leading-tight font-bold">
+        ⚡ {buzzer.winner}
+      </p>
+      <p className="text-ink-muted truncate text-xs">
+        buzzed in first
+        {buzzer.order.length > 1 && <> · also: {buzzer.order.slice(1).join(', ')}</>}
+      </p>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
         <Button
           variant="success"
-          size="sm"
+          size="lg"
           onClick={() => onCorrect(buzzer.winner)}
           title={`Correct — award ${money(stake)} [C]`}
         >
@@ -452,7 +481,7 @@ function BuzzerStrip({
         </Button>
         <Button
           variant="deduct"
-          size="sm"
+          size="lg"
           onClick={() => onWrong(buzzer.winner)}
           title={
             allowNegatives
@@ -462,7 +491,7 @@ function BuzzerStrip({
         >
           {allowNegatives ? <>✗ Wrong −{money(stake)}</> : '✗ Wrong'}
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => command('reset-buzzer')}>
+        <Button variant="ghost" size="md" onClick={() => command('reset-buzzer')}>
           Reset
         </Button>
       </div>

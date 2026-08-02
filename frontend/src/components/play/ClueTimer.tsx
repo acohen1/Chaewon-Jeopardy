@@ -11,7 +11,12 @@
  * without a session ("couch play") the answer clock. If that timer is Off,
  * the other enabled one is used so a lone press never dead-ends.
  * Renders nothing when every applicable timer is Off. Mounted outside the
- * keyed SlideView so a countdown survives question↔answer flips. */
+ * keyed SlideView so a countdown survives question↔answer flips.
+ * PRESENTATION: idle is a compact host button; a running clock is the big
+ * TV ring (couch-readable seconds, a caption naming the clock, heartbeat
+ * urgency under 3s, pulsing TIME! on expiry) — it docks inside ClueOverlay's
+ * stage cluster next to the buzzer surfaces so timer + buzz UI read as one
+ * component. All motion is motion-safe (reduced-motion gets static color). */
 import { clsx } from 'clsx'
 import { Timer } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -129,22 +134,35 @@ export function ClueTimer({ buzzSeconds, answerSeconds, buzzer }: ClueTimerProps
     )
   }
 
+  /* ---- Running / expired: the big TV ring — arc drains, seconds front and
+   * center, a caption naming the clock, heartbeat urgency in the last
+   * seconds, and an expired state readable from a couch. ---- */
   const expired = status === 'expired'
+  const urgent = !expired && remaining <= 3
   const frac = duration > 0 ? remaining / duration : 0
+  const arcClass = expired || urgent
+    ? 'stroke-danger'
+    : kind === 'answer'
+      ? 'stroke-dollar'
+      : 'stroke-accent'
   return (
     <button
       type="button"
       onClick={manualStart}
       title={expired ? "Time's up — click to restart [T]" : 'Restart timer [T]'}
-      className={clsx('relative size-9 shrink-0 cursor-pointer', expired && 'animate-pulse')}
+      className={clsx(
+        'relative size-26 shrink-0 cursor-pointer',
+        expired && 'motion-safe:animate-pulse',
+        urgent && 'motion-safe:animate-urgent-tick',
+      )}
     >
-      <svg viewBox="0 0 36 36" className="size-9 -rotate-90">
+      <svg viewBox="0 0 36 36" className="size-26 -rotate-90">
         <circle
           cx="18"
           cy="18"
           r={RADIUS}
           fill="none"
-          strokeWidth="3"
+          strokeWidth="2.5"
           className="stroke-line-soft"
         />
         <circle
@@ -152,22 +170,30 @@ export function ClueTimer({ buzzSeconds, answerSeconds, buzzer }: ClueTimerProps
           cy="18"
           r={RADIUS}
           fill="none"
-          strokeWidth="3"
+          strokeWidth="2.5"
           strokeLinecap="round"
           strokeDasharray={CIRCUMFERENCE}
           strokeDashoffset={CIRCUMFERENCE * (1 - frac)}
-          className={clsx(
-            expired ? 'stroke-danger' : kind === 'answer' ? 'stroke-dollar' : 'stroke-accent',
-          )}
+          className={clsx('transition-colors duration-300', arcClass)}
         />
       </svg>
-      <span
-        className={clsx(
-          'absolute inset-0 flex items-center justify-center text-xs font-bold tabular-nums',
-          expired ? 'text-danger' : 'text-ink',
-        )}
-      >
-        {Math.ceil(remaining)}
+      <span className="absolute inset-0 flex flex-col items-center justify-center">
+        <span
+          className={clsx(
+            'font-display text-4xl leading-none font-bold tabular-nums',
+            expired || urgent ? 'text-danger' : 'text-ink',
+          )}
+        >
+          {Math.ceil(remaining)}
+        </span>
+        <span
+          className={clsx(
+            'mt-1 text-[10px] font-bold tracking-widest uppercase',
+            expired ? 'text-danger' : kind === 'answer' ? 'text-dollar' : 'text-accent',
+          )}
+        >
+          {expired ? 'Time!' : kind === 'answer' ? 'Answer' : 'Buzz in'}
+        </span>
       </span>
     </button>
   )
