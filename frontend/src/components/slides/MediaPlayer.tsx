@@ -80,6 +80,13 @@ export function MediaPlayer({
     else el.pause()
   }, [])
 
+  /* Plain play — NO seek. The autoplay path must never touch currentTime:
+   * seeking an unbuffered element desyncs audio from video (see types.ts). */
+  const play = useCallback(() => {
+    const el = mediaRef.current
+    if (el && el.paused) void el.play().catch(() => {})
+  }, [])
+
   const seekTo = useCallback((t: number) => {
     const el = mediaRef.current
     if (!el) return
@@ -121,9 +128,9 @@ export function MediaPlayer({
 
   useEffect(() => {
     if (!register) return
-    register({ isVideo, togglePlay: toggle, seekBy, restart, toggleFullscreen })
+    register({ isVideo, togglePlay: toggle, play, seekBy, restart, toggleFullscreen })
     return () => register(null)
-  }, [register, isVideo, toggle, seekBy, restart, toggleFullscreen])
+  }, [register, isVideo, toggle, play, seekBy, restart, toggleFullscreen])
 
   /* Unmount: silence immediately. */
   useEffect(() => () => mediaRef.current?.pause(), [])

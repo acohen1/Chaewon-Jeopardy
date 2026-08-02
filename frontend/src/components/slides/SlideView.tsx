@@ -148,13 +148,15 @@ export function SlideView({
   /* Autoplay (play overlay, Game-settings toggle): mount-only, and only when
    * exactly one timed cell exists — multi-clip slides stay manual so clips
    * never talk over each other. Children register their handles in their own
-   * mount effects, which run before this one. restart() on a fresh mount is
-   * a plain "play from the top"; the browser rejecting the play() promise
-   * (strict autoplay policy) leaves the cell idle with its transport shown.
+   * mount effects, which run before this one. Uses play() — NEVER restart():
+   * a fresh element is already at 0, and restart's explicit seek flushes the
+   * decoders mid-buffer, a known Chromium recipe for audio trailing video by
+   * a beat. The browser rejecting the play() promise (strict autoplay
+   * policy) leaves the cell idle with its transport shown.
    * Empty deps = once per mount (StrictMode's double-run just re-plays). */
   useEffect(() => {
     if (!autoplay) return
-    if (timedIndices.length === 1) handles.current.get(timedIndices[0])?.restart()
+    if (timedIndices.length === 1) handles.current.get(timedIndices[0])?.play()
     // Mount-only: the values are stable for the lifetime of a keyed SlideView.
   }, [])
 

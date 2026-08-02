@@ -7,6 +7,11 @@
 export interface TimedCellHandle {
   isVideo: boolean
   togglePlay: () => void
+  /** Start playback WITHOUT seeking. Autoplay must use this, not restart():
+   * an explicit seek on a barely-buffered element flushes the decoders, and
+   * seek-then-play on streamed media is a known Chromium A/V desync trigger
+   * (video resumes from the keyframe while audio re-rolls a beat behind). */
+  play: () => void
   /** Seek relative by seconds (negative = back). */
   seekBy: (deltaSeconds: number) => void
   /** Legacy parity: seek to 0 AND play. */

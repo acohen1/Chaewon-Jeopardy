@@ -50,12 +50,19 @@ export function StackedAudioPlayer({
     })
   }, [clips, master, elements])
 
-  const { toggle, seekBy, restart } = stack
+  const { toggle, play, seekBy, restart } = stack
   useEffect(() => {
     if (!register) return
-    register({ isVideo: false, togglePlay: toggle, seekBy, restart, toggleFullscreen: () => {} })
+    register({
+      isVideo: false,
+      togglePlay: toggle,
+      play, // audio-only: the stack's own aligned start (no lip-sync concern)
+      seekBy,
+      restart,
+      toggleFullscreen: () => {},
+    })
     return () => register(null)
-  }, [register, toggle, seekBy, restart])
+  }, [register, toggle, play, seekBy, restart])
 
   const srcs = useMemo(() => clips.map((c) => assetUrl(boardId, c.path)), [clips, boardId])
 
