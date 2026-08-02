@@ -123,12 +123,17 @@ def test_put_preserves_server_scores_and_used(client, board):
     assert saved["cells"][0][0]["used"] is True  # not reverted to False
 
 
-def test_put_new_player_keeps_payload_score(client, board):
+def test_put_new_player_starts_at_zero(client, board):
+    """Contract CHANGED with the full game reset (v2.4.0): scores are game
+    state, full stop — a payload player absent server-side starts at 0, it
+    does NOT keep a payload score. (The old carve-out let a stale editor
+    draft resurrect reset-deleted players with last game's dollars; the real
+    editor only ever adds players at 0, so nothing legitimate is lost.)"""
     bid = board["id"]
     doc = client.get(f"/api/boards/{bid}").json()
     doc["players"] = [{"name": "Fresh", "score": 123}]
     assert client.put(f"/api/boards/{bid}", json=doc).json()["players"] == [
-        {"name": "Fresh", "score": 123}
+        {"name": "Fresh", "score": 0}
     ]
 
 

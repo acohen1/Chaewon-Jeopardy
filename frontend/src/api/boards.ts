@@ -149,6 +149,16 @@ export function useGameActions(boardId: string) {
     onError,
   })
 
+  /** Full reset to a brand-new game: scores, history, used cells, control,
+   * AND the roster — connected phone players ride along at $0. The narrow
+   * scores-only / cells-only tools above stay separate on purpose. */
+  const resetGame = useMutation({
+    mutationFn: (_: []) => api.post<Board>(`${base}/game/reset`),
+    onMutate,
+    onSuccess,
+    onError,
+  })
+
   /** Game settings (turn order, buzzer pacing, media, scoring); the server
    * also remembers every sent field as the default for future boards. */
   const setGameSettings = useMutation({
@@ -178,6 +188,7 @@ export function useGameActions(boardId: string) {
     resetScores,
     setCellUsed,
     resetUsed,
+    resetGame,
     setGameSettings,
     setControl,
   }

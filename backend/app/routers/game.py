@@ -198,6 +198,39 @@ def undo_score(board_id: str) -> Board:
     return board
 
 
+@router.post("/game/reset")
+def reset_game(board_id: str) -> Board:
+    """Full reset to a brand-new game: scores, history, used cells, board
+    control, AND the roster — unlike the scores-only / cells-only tools,
+    which deliberately stay narrow. Live phone participants are never kicked
+    by a reset (participants ARE board players): they keep their seats and
+    re-appear as fresh $0 players, board order and casing preserved."""
+
+    def mutate(board: Board) -> None:
+        # Snapshot the live roster INSIDE the store lock: a phone joining
+        # concurrently either registered its participant before this runs
+        # (seen here, kept) or its ensure runs after our write and re-adds
+        # the player (attach's ensure is unconditional). Reading it earlier
+        # would let the reset delete a player a mid-flight join just wrote.
+        live = manager.participant_names(board_id)
+        kept = [Player(name=p.name, score=0) for p in board.players if p.name in live]
+        seen = {p.name for p in kept}
+        # A live participant whose board player was deleted mid-session still
+        # holds a seat — re-add them rather than strand a connected phone.
+        kept.extend(Player(name=n, score=0) for n in sorted(live - seen, key=str.lower))
+        board.players = kept
+        board.history = []
+        board.control_player = None
+        for row in board.cells:
+            for cell in row:
+                cell.used = False
+
+    get_or_404(board_id)
+    board = store.update_board(board_id, mutate)
+    manager.notify_scores(board_id)
+    return board
+
+
 @router.post("/scores/reset")
 def reset_scores(board_id: str) -> Board:
     def mutate(board: Board) -> None:

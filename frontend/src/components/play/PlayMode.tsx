@@ -542,11 +542,12 @@ export function PlayMode({ boardId }: { boardId: string }) {
         <PodiumOverlay
           players={board.players}
           onPlayAgain={() => {
-            actions.resetScores.mutate([])
-            actions.resetUsed.mutate([])
             // Full circle: a fresh game returns to the lobby — re-invite,
-            // re-roll who starts (the session and roster carry over).
-            setInLobby(true)
+            // re-roll who starts. The roster resets too; connected phones
+            // ride along and re-appear at $0 (the session carries over).
+            // Lobby entry waits for the reset to LAND: entering on the stale
+            // roster would let Start roulette players the reset just deleted.
+            actions.resetGame.mutate([], { onSuccess: () => setInLobby(true) })
           }}
           onClose={() => setPodium(false)}
         />
@@ -564,14 +565,14 @@ export function PlayMode({ boardId }: { boardId: string }) {
       <ConfirmDialog
         open={confirmNewGame}
         title="New game"
-        message="Reset all scores and the board, and head back to the lobby? Connected players stay in the room."
+        message="Start a brand-new game? Scores, the board, and the roster all reset — connected players stay in the room and come back at $0."
         confirmLabel="New game"
         danger
         onConfirm={() => {
-          actions.resetScores.mutate([])
-          actions.resetUsed.mutate([])
+          // Same as the podium's Play again: the lobby waits for the reset
+          // response so it never renders (or roulettes) the stale roster.
+          actions.resetGame.mutate([], { onSuccess: () => setInLobby(true) })
           setConfirmNewGame(false)
-          setInLobby(true)
         }}
         onCancel={() => setConfirmNewGame(false)}
       />

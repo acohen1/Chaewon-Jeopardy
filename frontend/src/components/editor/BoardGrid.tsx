@@ -144,8 +144,14 @@ export function BoardGrid({ board, onUpdate, onEditCell }: BoardGridProps) {
   return (
     <>
       <div
-        className="grid min-w-fit gap-2"
-        style={{ gridTemplateColumns: `88px repeat(${board.num_cols}, minmax(150px, 1fr))` }}
+        // min-h-full: the grid claims the editor's free height, so short
+        // boards stretch to fill instead of huddling at the top; tall boards
+        // outgrow it and scroll (the 1fr rows are floored at 4rem).
+        className="grid min-h-full min-w-fit gap-2"
+        style={{
+          gridTemplateColumns: `88px repeat(${board.num_cols}, minmax(150px, 1fr))`,
+          gridTemplateRows: `auto repeat(${board.num_rows}, minmax(4rem, 1fr))`,
+        }}
       >
         {/* Corner placeholder above the value column */}
         <div aria-hidden />
@@ -222,7 +228,8 @@ function RowValueInput({ value, onCommit }: { value: number; onCommit: (v: numbe
         if (e.key === 'Enter') e.currentTarget.blur()
       }}
       aria-label="Row value"
-      className="bg-surface-warm text-dollar focus:border-accent w-full rounded-lg border border-line-soft px-2 py-2 text-center text-sm font-bold transition-colors duration-100 focus:outline-none"
+      // self-center: keep the input its natural height inside a stretched row.
+      className="bg-surface-warm text-dollar focus:border-accent w-full self-center rounded-lg border border-line-soft px-2 py-2 text-center text-sm font-bold transition-colors duration-100 focus:outline-none"
     />
   )
 }
@@ -244,7 +251,7 @@ function CellCard({
       type="button"
       onClick={onOpen}
       onContextMenu={onContextMenu}
-      className="bg-surface hover:border-accent active:bg-cell-pressed relative flex min-h-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-line-soft px-2 py-2 text-center transition-colors duration-100"
+      className="bg-surface hover:border-accent active:bg-cell-pressed relative flex h-full min-h-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-line-soft px-2 py-2 text-center transition-colors duration-100"
     >
       {cell.bonus && (
         <span

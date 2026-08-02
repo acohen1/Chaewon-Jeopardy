@@ -95,3 +95,51 @@ def test_reset_scores(client, board):
     r = client.post(f"/api/boards/{bid}/scores/reset")
     assert r.status_code == 200
     assert _players(r.json()) == {"Alice": 0, "Bob": 0}
+
+# ------------------------------------------------------------------ #
+#  Full game reset (roster included)                                 #
+# ------------------------------------------------------------------ #
+def test_game_reset_clears_roster_history_used_control(client, board):
+    bid = board["id"]
+    for name in ("Alice", "Bob"):
+        client.post(f"/api/boards/{bid}/players", json={"name": name})
+    client.post(f"/api/boards/{bid}/players/Alice/award", json={"delta": 400})
+    client.put(f"/api/boards/{bid}/cells/1/2/used", json={"used": True})
+    client.put(f"/api/boards/{bid}/control", json={"player": "Bob"})
+    client.put(f"/api/boards/{bid}/settings", json={"turn_mode": "sequential"})
+
+    r = client.post(f"/api/boards/{bid}/game/reset")
+    assert r.status_code == 200
+    b = r.json()
+    assert b["players"] == []          # couch roster: cleared outright
+    assert b["history"] == []
+    assert b["control_player"] is None
+    assert all(not c["used"] for row in b["cells"] for c in row)
+    # A game reset is not a settings reset.
+    assert b["turn_mode"] == "sequential"
+    # Content untouched.
+    assert b["num_cols"] == board["num_cols"]
+
+
+def test_scores_only_reset_keeps_roster(client, board):
+    """The narrow tools stay narrow: scores/reset zeroes but never removes."""
+    bid = board["id"]
+    client.post(f"/api/boards/{bid}/players", json={"name": "Alice"})
+    client.post(f"/api/boards/{bid}/players/Alice/award", json={"delta": 400})
+    b = client.post(f"/api/boards/{bid}/scores/reset").json()
+    assert _players(b) == {"Alice": 0}
+
+
+def test_stale_editor_save_cannot_resurrect_scores(client, board):
+    """After a full game reset, a stale editor draft may re-add a deleted
+    player (roster is editor-owned) — but never with last game's dollars:
+    scores are game state and a name absent server-side starts at 0."""
+    bid = board["id"]
+    client.post(f"/api/boards/{bid}/players", json={"name": "Alice"})
+    client.post(f"/api/boards/{bid}/players/Alice/award", json={"delta": 2400})
+    stale_doc = client.get(f"/api/boards/{bid}").json()
+    assert _players(stale_doc) == {"Alice": 2400}
+
+    client.post(f"/api/boards/{bid}/game/reset")
+    saved = client.put(f"/api/boards/{bid}", json=stale_doc).json()
+    assert _players(saved) == {"Alice": 0}

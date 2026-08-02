@@ -3,8 +3,8 @@
  * top three get podium blocks (1st tallest, center, crowned), the rest a
  * simple list. Pure-CSS confetti falls behind everything — the keyframes are
  * rendered locally so styles.css stays untouched. Fanfare plays on mount
- * (governed by the sfx mute). 'Play again' resets scores + board after a
- * confirm; Esc or 'Close' just closes. */
+ * (governed by the sfx mute). 'Play again' resets the whole game — scores,
+ * board, and roster — after a confirm; Esc or 'Close' just closes. */
 import { clsx } from 'clsx'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -190,7 +190,7 @@ export function PodiumOverlay({ players, onPlayAgain, onClose }: PodiumOverlayPr
       <ConfirmDialog
         open={confirmReset}
         title="Play again"
-        message="Reset scores and board for a new game?"
+        message="Start over? Scores, the board, and the roster reset — connected players come back at $0."
         confirmLabel="Reset"
         danger
         onConfirm={() => {

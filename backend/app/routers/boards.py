@@ -79,10 +79,13 @@ def save_board(board_id: str, board: Board) -> Board:
     current = get_or_404(board_id)
     board.id = board_id  # path wins over payload
 
+    # Scores are GAME state, full stop: a payload player either takes the
+    # server's current score or starts at 0. (A name absent server-side used
+    # to keep its payload score — after a full game reset, a stale editor
+    # draft could resurrect deleted players WITH last game's dollars.)
     server_scores = {p.name: p.score for p in current.players}
     for p in board.players:
-        if p.name in server_scores:
-            p.score = server_scores[p.name]
+        p.score = server_scores.get(p.name, 0)
     # Roster membership is payload-owned EXCEPT for live participants: phone
     # joins auto-create their player mid-session, so a stale draft from
     # before the join must not delete them (their score rides the server

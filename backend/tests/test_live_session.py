@@ -465,3 +465,53 @@ def test_token_reconnect_recreates_deleted_board_player(client, board):
         ]
         players = client.get(f"/api/boards/{board['id']}").json()["players"]
         assert players == [{"name": "Ray", "score": 0}]
+
+
+def test_game_reset_keeps_live_participants_at_zero(client, board):
+    """The New-game landmine: phone participants ARE board players. A full
+    reset must not kick them — they ride along as fresh $0 players — while
+    couch-only players (no phone attached) are cleared."""
+    bid = board["id"]
+    client.post(f"/api/boards/{bid}/players", json={"name": "Couch"})
+    s = _start(client, board)
+    with client.websocket_connect("/api/ws") as ws:
+        ws.send_json({"type": "hello-player", "code": s["code"], "name": "Phone"})
+        assert ws.receive_json()["type"] == "welcome"
+        client.post(f"/api/boards/{bid}/players/Phone/award", json={"delta": 600})
+
+        b = client.post(f"/api/boards/{bid}/game/reset").json()
+        assert [(p["name"], p["score"]) for p in b["players"]] == [("Phone", 0)]
+
+        # The phone saw the reset land: a snapshot with its score back at 0.
+        _drain(
+            ws,
+            lambda m: m.get("type") == "snapshot"
+            and any(
+                e.get("name") == "Phone" and e.get("score") == 0
+                for e in m["snapshot"].get("scoreboard", [])
+            ),
+        )
+
+
+def test_reconnect_recreates_deleted_board_player(client, board):
+    """attach's ensure is UNCONDITIONAL: a (re)join always re-creates its
+    board player even when the session's score cache is stale — the ghost
+    window after a full game reset (player can buzz but not be awarded)."""
+    bid = board["id"]
+    s = _start(client, board)
+    with client.websocket_connect("/api/ws") as ws:
+        ws.send_json({"type": "hello-player", "code": s["code"], "name": "Ghost"})
+        token = ws.receive_json()["token"]
+    # Disconnected but still holding a seat; delete the board player via REST.
+    client.delete(f"/api/boards/{bid}/players/Ghost")
+    assert "Ghost" not in {p["name"] for p in client.get(f"/api/boards/{bid}").json()["players"]}
+    # Token reconnect must resurrect the board player (awardable again).
+    with client.websocket_connect("/api/ws") as ws:
+        ws.send_json(
+            {"type": "hello-player", "code": s["code"], "name": "Ghost", "token": token}
+        )
+        assert ws.receive_json()["type"] == "welcome"
+        players = {p["name"]: p["score"] for p in client.get(f"/api/boards/{bid}").json()["players"]}
+        assert players.get("Ghost") == 0
+        r = client.post(f"/api/boards/{bid}/players/Ghost/award", json={"delta": 200})
+        assert r.status_code == 200

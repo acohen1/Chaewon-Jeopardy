@@ -222,23 +222,26 @@ class SessionManager:
             # EVERY attach path ends with the participant on the scoreboard —
             # a reconnect after the board player was deleted via REST would
             # otherwise come back as a ghost (can buzz, can't be awarded).
-            # Cache check first; store IO runs off-loop (lock stays held —
-            # the point is buzz arbitration never stalls behind file IO).
-            if not any(n == name for n, _ in s.scores):
-                joined_name = name
+            # UNCONDITIONAL (no cache pre-check): the cache can be stale for
+            # a beat after a mass-removal like POST /game/reset, and a join
+            # inside that window must still re-create its board player. The
+            # mutator is idempotent under the store lock and attaches are
+            # rare, so the extra write is cheap. Store IO runs off-loop
+            # (lock stays held — buzz arbitration never stalls on file IO).
+            joined_name = name
 
-                def ensure(board: Board) -> None:
-                    # idempotent under the store lock; survives a lost race
-                    if not any(p.name == joined_name for p in board.players):
-                        board.players.append(Player(name=joined_name))
+            def ensure(board: Board) -> None:
+                # idempotent under the store lock; survives a lost race
+                if not any(p.name == joined_name for p in board.players):
+                    board.players.append(Player(name=joined_name))
 
-                try:
-                    await asyncio.to_thread(store.update_board, s.board_id, ensure)
-                except Exception:
-                    pass  # board deleted mid-session — session still works
-                s.scores, s.control = await asyncio.to_thread(
-                    _read_board_view, s.board_id
-                )
+            try:
+                await asyncio.to_thread(store.update_board, s.board_id, ensure)
+            except Exception:
+                pass  # board deleted mid-session — session still works
+            s.scores, s.control = await asyncio.to_thread(
+                _read_board_view, s.board_id
+            )
             await self._broadcast(exclude=socket)
             return token, s.snapshot()
 
