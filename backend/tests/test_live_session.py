@@ -515,3 +515,44 @@ def test_reconnect_recreates_deleted_board_player(client, board):
         assert players.get("Ghost") == 0
         r = client.post(f"/api/boards/{bid}/players/Ghost/award", json={"delta": 200})
         assert r.status_code == 200
+
+
+def test_plain_arm_clears_lockouts_from_previous_clue(client, board):
+    """Lockouts are per-clue. The leak: wrong answer locks a player out, the
+    clue ends while DISARMED (Disarm button / close in the locked phase, so
+    no reset-buzzer fires), and the next clue's plain arm used to inherit
+    the lockout forever. A fresh arm must reopen the buzzers to everyone."""
+    s = _start(client, board)
+    with client.websocket_connect("/api/ws") as host, \
+         client.websocket_connect("/api/ws") as p1:
+        host.send_json({"type": "hello-host", "hostKey": s["hostKey"]})
+        assert host.receive_json()["type"] == "welcome"
+        p1.send_json({"type": "hello-player", "code": s["code"], "name": "One"})
+        assert p1.receive_json()["type"] == "welcome"
+
+        # Clue 1: One buzzes, answers wrong → locked out of the steal window.
+        host.send_json({"type": "command", "command": "arm"})
+        _drain(host, lambda m: m.get("type") == "snapshot"
+               and m["snapshot"]["buzzer"]["phase"] == "armed")
+        p1.send_json({"type": "buzz"})
+        _drain(host, lambda m: m.get("type") == "snapshot"
+               and m["snapshot"]["buzzer"]["phase"] == "won")
+        host.send_json({"type": "command", "command": "rearm-excluding-winner"})
+        snap = _drain(host, lambda m: m.get("type") == "snapshot"
+                      and m["snapshot"]["buzzer"]["phase"] == "armed")
+        assert snap["snapshot"]["buzzer"]["lockedOut"] == ["One"]
+        # Lockout holds within the clue: One's buzz is ignored while locked out.
+        p1.send_json({"type": "buzz"})
+        host.send_json({"type": "command", "command": "disarm"})  # clue ends
+        _drain(host, lambda m: m.get("type") == "snapshot"
+               and m["snapshot"]["buzzer"]["phase"] == "locked")
+
+        # Clue 2: a plain arm is a fresh window — One can buzz and win.
+        host.send_json({"type": "command", "command": "arm"})
+        snap = _drain(host, lambda m: m.get("type") == "snapshot"
+                      and m["snapshot"]["buzzer"]["phase"] == "armed")
+        assert snap["snapshot"]["buzzer"]["lockedOut"] == []
+        p1.send_json({"type": "buzz"})
+        snap = _drain(host, lambda m: m.get("type") == "snapshot"
+                      and m["snapshot"]["buzzer"]["phase"] == "won")
+        assert snap["snapshot"]["buzzer"]["winner"] == "One"

@@ -315,8 +315,17 @@ class SessionManager:
                 await self._broadcast()
                 return
             if command == "arm":
+                # A plain arm is a FRESH buzz window: lockouts belong to one
+                # clue's steal chain and only rearm-excluding-winner carries
+                # them. Without this, a clue that ends while disarmed (Disarm,
+                # or any close in the locked phase) leaked its lockouts into
+                # every later clue — arm inherited them forever.
                 s.armed, s.winner, s.order = True, None, []
+                s.locked_out.clear()
             elif command == "disarm":
+                # Mid-clue pause: winner/order clear but lockouts survive so
+                # the host can disarm to talk and still owe the steal window.
+                # (A follow-up plain arm deliberately reopens to everyone.)
                 s.armed, s.winner, s.order = False, None, []
             elif command == "rearm-excluding-winner":
                 if s.winner is not None:

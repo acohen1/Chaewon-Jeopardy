@@ -6,6 +6,7 @@
  * multi-award transfer only matters under First-correct; first pick only
  * when a mode is automatic. */
 import { clsx } from 'clsx'
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { Dialog } from '@/components/ui/Dialog'
@@ -291,16 +292,26 @@ function PillRow({
   value: number
   onSelect: (v: number) => void
 }) {
-  // Imports and the API accept any 0–600s — an off-list stored value gets
-  // its own pill so the active setting is never invisible in the dialog.
+  // The pills are quick picks; any 1–600s works — "Custom…" opens a small
+  // inline seconds field (the backend clamps to the same range). An off-list
+  // value (custom, imported, or API-set) gets its own pill so the active
+  // setting is never invisible in the dialog.
+  const [customOpen, setCustomOpen] = useState(false)
+  const [customText, setCustomText] = useState('')
   const shown = options.includes(value)
     ? options
     : [...options, value].sort((a, b) => a - b)
+  const commitCustom = () => {
+    const n = Math.round(Number(customText))
+    setCustomOpen(false)
+    setCustomText('')
+    if (Number.isFinite(n) && n >= 1 && n <= 600) onSelect(n)
+  }
   return (
     <fieldset className="border-line-soft space-y-2 rounded-xl border px-3.5 py-2.5">
       <legend className="sr-only">{label}</legend>
       <span className="text-ink block text-sm font-semibold">{label}</span>
-      <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={label}>
+      <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label={label}>
         {shown.map((secs) => (
           <button
             key={secs}
@@ -319,6 +330,39 @@ function PillRow({
             {secs === 0 ? 'Off' : `${secs}s`}
           </button>
         ))}
+        {customOpen ? (
+          <input
+            autoFocus
+            type="number"
+            min={1}
+            max={600}
+            value={customText}
+            onChange={(e) => setCustomText(e.target.value)}
+            onBlur={commitCustom}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur()
+              if (e.key === 'Escape') {
+                // Cancel the field, not the dialog.
+                e.stopPropagation()
+                setCustomOpen(false)
+                setCustomText('')
+              }
+            }}
+            placeholder="45"
+            aria-label={`${label} — custom seconds`}
+            data-testid={`${testid}-custom-input`}
+            className="border-accent/70 text-ink w-16 rounded-full border bg-transparent px-2.5 py-0.5 text-center text-xs font-semibold focus:outline-none"
+          />
+        ) : (
+          <button
+            type="button"
+            data-testid={`${testid}-custom`}
+            onClick={() => setCustomOpen(true)}
+            className="border-line-soft text-ink-muted hover:border-line hover:text-ink cursor-pointer rounded-full border border-dashed px-3 py-1 text-xs font-semibold transition-colors duration-100"
+          >
+            Custom…
+          </button>
+        )}
       </div>
       <span className="text-ink-muted block text-xs leading-relaxed">{hint}</span>
     </fieldset>

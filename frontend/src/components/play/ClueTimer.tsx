@@ -32,6 +32,10 @@ export interface ClueTimerProps {
   answerSeconds: number
   /** Live buzzer state while hosting; null/undefined = couch play. */
   buzzer?: BuzzerState | null
+  /** Skip the compact idle button (the hosted stage cluster provides its own
+   * affordances and a stray chip reads as clutter next to the big banner);
+   * the T hotkey and the automatic triggers stay active regardless. */
+  hideIdle?: boolean
 }
 
 type TimerKind = 'buzz' | 'answer'
@@ -39,7 +43,7 @@ type TimerKind = 'buzz' | 'answer'
 const RADIUS = 15.5
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
-export function ClueTimer({ buzzSeconds, answerSeconds, buzzer }: ClueTimerProps) {
+export function ClueTimer({ buzzSeconds, answerSeconds, buzzer, hideIdle = false }: ClueTimerProps) {
   const [status, setStatus] = useState<'idle' | 'running' | 'expired'>('idle')
   const [kind, setKind] = useState<TimerKind>('answer')
   const [duration, setDuration] = useState(0)
@@ -120,6 +124,7 @@ export function ClueTimer({ buzzSeconds, answerSeconds, buzzer }: ClueTimerProps
   if (!anyEnabled) return null
 
   if (status === 'idle') {
+    if (hideIdle) return null
     const idleSecs =
       phase === 'won'
         ? answerSeconds || buzzSeconds

@@ -134,12 +134,18 @@ export function ClueOverlay({
    * so we keep re-sending on snapshot updates until the server confirms.
    * Once spent, a manual Disarm is respected for the rest of the clue. */
   const autoArmedRef = useRef(false)
+  // The shot is only spendable after THIS overlay has seen a locked phase:
+  // the mount-time snapshot can still show the PREVIOUS clue's armed/won
+  // state (its close-time reset-buzzer is in flight), and spending on that
+  // stale frame would leave the new clue silently un-armed.
+  const sawLockedRef = useRef(false)
   useEffect(() => {
     if (!hosting) return
     if (buzzer.phase !== 'locked') {
-      autoArmedRef.current = true // armed/won — by us or by hand, shot spent
+      if (sawLockedRef.current) autoArmedRef.current = true // armed/won for real — shot spent
       return
     }
+    sawLockedRef.current = true
     if (!autoArm || autoArmedRef.current) return
     if (page !== 'question' || cell.used) return
     onBuzzerCommand('arm')
@@ -279,6 +285,7 @@ export function ClueOverlay({
                 buzzSeconds={buzzSeconds}
                 answerSeconds={answerSeconds}
                 buzzer={buzzer}
+                hideIdle
               />
               <BuzzerStrip
                 buzzer={buzzer}
@@ -443,17 +450,19 @@ function BuzzerStrip({
 
   if (buzzer.phase === 'armed') {
     return (
-      <div className="flex min-w-0 flex-col items-start gap-1.5">
+      <div className="flex min-w-0 items-center gap-3">
         <span className="text-accent motion-safe:animate-pulse inline-flex items-center gap-2 text-xl font-bold">
           <Zap className="size-6" fill="currentColor" />
           Buzzers armed
         </span>
-        <span className="text-ink-muted flex items-center gap-2 text-xs">
-          {buzzer.lockedOut.length > 0 && <>{buzzer.lockedOut.length} locked out ·</>}
-          <Button variant="ghost" size="sm" onClick={() => command('disarm')}>
-            Disarm
-          </Button>
-        </span>
+        {buzzer.lockedOut.length > 0 && (
+          <span className="text-ink-muted text-xs">
+            {buzzer.lockedOut.length} locked out
+          </span>
+        )}
+        <Button variant="ghost" size="sm" onClick={() => command('disarm')}>
+          Disarm
+        </Button>
       </div>
     )
   }
