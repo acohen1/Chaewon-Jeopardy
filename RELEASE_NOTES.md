@@ -20,6 +20,7 @@ We are Rhubarb now! 🌱 Same game, new name:
 - Invite over the internet now also lives in the mid-game Room panel
 - A proper update screen: watch the install happen instead of wondering if anything is
 - False-start lockout — buzzing before the host arms freezes YOUR buzzer for half a second, so mashing is a losing strategy and clean timing wins
+- Undo, everywhere in the editor: Ctrl+Z / Ctrl+Y now work inside the cell editor too — take back an accidental media delete, reorder, upload, or volume drag (one drop of several files undoes as one step)
 
 Plus a proper Game settings menu (the old Rules button, all grown up):
 

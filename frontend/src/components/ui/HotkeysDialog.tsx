@@ -79,6 +79,8 @@ export function HotkeysDialog({ open, onClose }: { open: boolean; onClose: () =>
           title="Editor"
           rows={[
             { keys: ['Ctrl', 'S'], label: 'Save now' },
+            { keys: ['Ctrl', 'Z'], label: 'Undo — board edits, or the open cell editor' },
+            { keys: ['Ctrl', 'Y'], label: 'Redo (also Ctrl+Shift+Z)' },
             { keys: ['Ctrl', 'V'], label: 'Paste media into a cell' },
             { keys: ['Enter'], label: 'Confirm dialogs & inline edits' },
             { keys: ['Esc'], label: 'Close dialog (asks if unsaved)' },

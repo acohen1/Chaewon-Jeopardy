@@ -25,7 +25,10 @@ export interface SlideEditorHandle {
 
 export interface SlideEditorProps {
   draft: Slide
-  onChange: (next: Slide) => void
+  /** `coalesceKey` groups rapid same-source edits (typing bursts, volume
+   * drags, one multi-file drop) into a single undo step in the host dialog's
+   * history; discrete edits (remove, reorder, stack toggle) omit it. */
+  onChange: (next: Slide, coalesceKey?: string) => void
   boardId: string
   /** Lets the host dialog route clipboard pastes to the active tab. */
   handleRef?: Ref<SlideEditorHandle>
@@ -60,22 +63,25 @@ export function SlideEditor({
     onUploadingChange?.(isUploading)
   }, [isUploading, onUploadingChange])
 
-  const commit = (next: Slide) => {
+  const commit = (next: Slide, coalesceKey?: string) => {
     draftRef.current = next
-    onChange(next)
+    onChange(next, coalesceKey)
   }
 
   /** Commit an asset list; forces audio_stack off when <2 audio clips. */
-  const commitAssets = (assets: SlideAsset[], stack?: boolean) => {
+  const commitAssets = (assets: SlideAsset[], stack?: boolean, coalesceKey?: string) => {
     const wanted = stack ?? draftRef.current.audio_stack
-    commit({
-      ...draftRef.current,
-      assets,
-      audio_stack: countAudio(assets) >= 2 ? wanted : false,
-    })
+    commit(
+      {
+        ...draftRef.current,
+        assets,
+        audio_stack: countAudio(assets) >= 2 ? wanted : false,
+      },
+      coalesceKey,
+    )
   }
 
-  const addOne = async (file: File | Blob, name: string) => {
+  const addOne = async (file: File | Blob, name: string, batchKey?: string) => {
     const type = extToType(name)
     if (!type) {
       toast(`Unsupported file type: ${name}`, { kind: 'error' })
@@ -110,7 +116,7 @@ export function SlideEditor({
         toast(LIMIT_MSG, { kind: 'error' })
         return
       }
-      commitAssets(next, stack)
+      commitAssets(next, stack, batchKey)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'unknown error'
       toast(`Upload failed — ${msg}`, { kind: 'error' })
@@ -119,14 +125,18 @@ export function SlideEditor({
     }
   }
 
+  // One drop/pick of N files = one undo step: every add in the batch shares
+  // a coalesce key. Unique per batch, so separate drops stay separate steps.
+  const batchSeqRef = useRef(0)
   const addFiles = (files: File[]) => {
+    const batchKey = `add:${++batchSeqRef.current}`
     void (async () => {
-      for (const f of files) await addOne(f, f.name)
+      for (const f of files) await addOne(f, f.name, batchKey)
     })()
   }
 
   const addPastedImage = (blob: Blob) => {
-    void addOne(blob, 'pasted_image.png')
+    void addOne(blob, 'pasted_image.png', `add:${++batchSeqRef.current}`)
   }
 
   useImperativeHandle(handleRef, () => ({ addFiles, addPastedImage }))
@@ -146,6 +156,8 @@ export function SlideEditor({
   const setVolume = (i: number, volume: number) => {
     commitAssets(
       draftRef.current.assets.map((a, idx) => (idx === i ? { ...a, volume } : a)),
+      undefined,
+      `volume:${i}`, // a slider drag is one undo step, not fifty
     )
   }
 
@@ -175,7 +187,7 @@ export function SlideEditor({
         </label>
         <textarea
           value={draft.text}
-          onChange={(e) => commit({ ...draftRef.current, text: e.target.value })}
+          onChange={(e) => commit({ ...draftRef.current, text: e.target.value }, 'text')}
           placeholder="Enter text for this slide…"
           rows={3}
           className="bg-surface text-ink placeholder:text-ink-faint focus:border-accent w-full resize-none rounded-lg border border-line p-2.5 text-sm transition-colors duration-100 focus:outline-none"
