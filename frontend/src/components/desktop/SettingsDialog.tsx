@@ -10,9 +10,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { Spinner } from '@/components/ui/Spinner'
 import { toast } from '@/components/ui/Toaster'
 import { desktop, isDesktop } from '@/lib/desktop'
-
-/** bytes → MB with 1 decimal, e.g. "12.4". */
-const mb = (bytes: number) => (bytes / (1024 * 1024)).toFixed(1)
+import { formatBytes } from '@/lib/format'
 
 /** Data-directory section: where boards live, open it, relocate it. */
 function StorageSection({ open }: { open: boolean }) {
@@ -46,7 +44,7 @@ function StorageSection({ open }: { open: boolean }) {
     setTidying(true)
     try {
       const freed = await api.post<{ files: number; bytes: number }>('/api/boards/storage/tidy')
-      toast(`Freed ${mb(freed.bytes)} MB`, { kind: 'success' })
+      toast(`Freed ${formatBytes(freed.bytes)}`, { kind: 'success' })
       refresh() // both the orphan line and the storage info
     } catch {
       toast('Could not tidy media', { kind: 'error' })
@@ -117,7 +115,7 @@ function StorageSection({ open }: { open: boolean }) {
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <span className="text-ink-muted text-xs">
               {orphans.files} unused media file{orphans.files === 1 ? '' : 's'} ·{' '}
-              {mb(orphans.bytes)} MB
+              {formatBytes(orphans.bytes)}
             </span>
             <Button variant="soft" size="sm" disabled={tidying} onClick={() => setTidyConfirm(true)}>
               {tidying ? <Spinner className="size-3.5" /> : <Trash2 size={13} />}
@@ -131,7 +129,7 @@ function StorageSection({ open }: { open: boolean }) {
       <ConfirmDialog
         open={tidyConfirm}
         title="Tidy media"
-        message={`Delete ${orphans?.files ?? 0} unused file(s)? Media added in the last hour is never touched.`}
+        message={`Delete ${orphans?.files ?? 0} unused file(s) and free ${formatBytes(orphans?.bytes ?? 0)}? Media added in the last hour is never touched.`}
         confirmLabel="Delete"
         danger
         onConfirm={() => void tidy()}
