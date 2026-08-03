@@ -21,7 +21,8 @@ function RootLayout() {
   const [hotkeysOpen, setHotkeysOpen] = useState(false)
   useHotkeys({ '?': () => setHotkeysOpen(true) })
 
-  // Desktop only: the Electron shell imported a double-clicked .rhubarb (or legacy .jeopardy) file.
+  // Desktop only: the Electron shell imported a double-clicked .jeopardy (or
+  // rename-era .rhubarb) file.
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   useEffect(() => {

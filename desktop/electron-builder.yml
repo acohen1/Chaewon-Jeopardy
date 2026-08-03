@@ -1,11 +1,11 @@
-# electron-builder configuration for the Rhubarb desktop shell.
+# electron-builder configuration for the Chaewon Jeopardy desktop shell.
 # Docs: https://www.electron.build/configuration
 
 # appId is the app's INVISIBLE machine identity (registry keys, update
 # continuity, install-dir resolution). It keeps the pre-rename value ON
 # PURPOSE: changing it would orphan every installed copy. Never touch it.
 appId: chaewon.jeopardy.app
-productName: Rhubarb
+productName: Chaewon Jeopardy
 
 directories:
   output: dist
@@ -35,9 +35,10 @@ win:
   icon: build/icon.ico
   # Version-free on purpose: assets are scoped per-release on GitHub, so one
   # name serves both the auto-updater (latest.yml points at it) and the
-  # permanent download link releases/latest/download/Rhubarb-Setup.exe
-  # — and the release page shows exactly ONE exe.
-  artifactName: "Rhubarb-Setup.${ext}"
+  # permanent download link
+  # releases/latest/download/Chaewon-Jeopardy-Setup.exe — the same permanent
+  # link v2.3.0 shipped with — and the release page shows exactly ONE exe.
+  artifactName: "Chaewon-Jeopardy-Setup.${ext}"
 
 # Classic assisted install wizard (not one-click): welcome page, choose the
 # install folder, shortcuts, run-after-finish. Defaults to the per-user
@@ -51,7 +52,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: Rhubarb
+  shortcutName: Chaewon Jeopardy
   runAfterFinish: true
   installerIcon: build/icon.ico
   uninstallerIcon: build/icon.ico
@@ -59,15 +60,20 @@ nsis:
   deleteAppDataOnUninstall: false
 
 fileAssociations:
-  - ext: rhubarb
-    name: Rhubarb Board
-    icon: build/icon.ico
-  # Pre-rename boards keep double-click-to-import forever.
   - ext: jeopardy
-    name: Rhubarb Board (legacy)
+    name: Jeopardy Board
+    icon: build/icon.ico
+  # Boards exported during the brief unreleased Rhubarb era (v2.4.0 dev
+  # builds only) still open with a double-click; the backend sniffs content,
+  # not extensions, so these import forever.
+  - ext: rhubarb
+    name: Jeopardy Board (legacy)
     icon: build/icon.ico
 
-# Auto-update feed: GitHub Releases on this repo. The release workflow
+# Auto-update feed: GitHub Releases on this repo. The GitHub repo itself
+# stayed named "rhubarb" through the aborted rename (renaming a repo is an
+# outward-facing act; old jeopardy links redirect here and this name works)
+# — the app's identity does NOT depend on the repo name. The release workflow
 # (.github/workflows/release.yml) publishes on every push to main with a new
 # version in desktop/package.json. NOTE: installed apps can only download
 # updates if the repo (or at least its releases) is PUBLIC.

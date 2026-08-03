@@ -38,10 +38,11 @@ from .models import (
 # Where legacy desktop-app assets might live on this machine — used to
 # resolve media referenced by a bare .json import (no zip = no bundled assets).
 LEGACY_ASSET_SEARCH_PATHS = [
-    # Post-rename data dir first (the shell migrates the old folder here),
-    # then the pre-rename name in case migration never ran on this machine.
-    Path(os.environ.get("APPDATA", "")) / "Rhubarb" / "assets",
+    # The real data dir first, then the Rhubarb name from the brief
+    # unreleased rename era (v2.4.0 dev builds only) in case that machine's
+    # library merge left assets behind. Keep BOTH forever — deliberate.
     Path(os.environ.get("APPDATA", "")) / "Chaewon Jeopardy" / "assets",
+    Path(os.environ.get("APPDATA", "")) / "Rhubarb" / "assets",
     Path(__file__).resolve().parent.parent.parent / "legacy" / "assets",
 ]
 

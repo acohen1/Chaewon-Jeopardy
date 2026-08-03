@@ -18,8 +18,11 @@ export function ReleaseNotes({ notes }: { notes: string }) {
       {lines.map((line, i) => {
         const heading = /^#{1,6}\s+(.*)$/.exec(line)
         if (heading) {
+          // Deliberately NOT accent-colored: AboutDialog's Version history
+          // renders each "vX.Y.Z" header in accent small-caps, and identical
+          // styling here would make ### subsections read as version entries.
           return (
-            <p key={i} className="font-display text-accent-bright pt-1 text-xs font-bold tracking-wide">
+            <p key={i} className="font-display text-ink pt-1 text-xs font-bold tracking-widest uppercase">
               {heading[1]}
             </p>
           )

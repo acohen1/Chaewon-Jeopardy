@@ -1,9 +1,9 @@
 {
-  "name": "rhubarb",
-  "productName": "Rhubarb",
+  "name": "chaewon-jeopardy",
+  "productName": "Chaewon Jeopardy",
   "version": "2.4.0",
   "private": true,
-  "description": "Rhubarb desktop shell (Electron)",
+  "description": "Chaewon Jeopardy desktop shell (Electron)",
   "main": "main.cjs",
   "scripts": {
     "dev": "electron .",

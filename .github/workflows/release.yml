@@ -78,6 +78,25 @@ jobs:
           uv sync
           uv run pyinstaller rhubarb-backend.spec --noconfirm
 
+      # EVERYTHING that can fail is front-loaded BEFORE the release exists:
+      # once `gh release create` runs, a later failure strands a live release
+      # with notes but no exe/latest.yml, and the skip-guard then no-ops every
+      # retry (recovery = `gh release delete vX.Y.Z --cleanup-tag`, then
+      # re-push). Frontend, sidecar, cloudflared download, and the desktop
+      # npm ci all run first so the only post-create step is electron-builder
+      # itself.
+      - name: Fetch cloudflared (remote-play tunnel client)
+        if: steps.guard.outputs.skip == 'false'
+        shell: pwsh
+        run: node desktop/scripts/fetch-cloudflared.cjs
+
+      - name: Install desktop dependencies
+        if: steps.guard.outputs.skip == 'false'
+        shell: pwsh
+        run: |
+          cd desktop
+          npm ci
+
       - name: Create release (RELEASE_NOTES.md section for this version is REQUIRED)
         if: steps.guard.outputs.skip == 'false'
         shell: pwsh
@@ -103,13 +122,8 @@ jobs:
           }
           $body = "## v$v`n`n" + $m.Groups[1].Value.Trim()
           Set-Content -Path release-body.md -Value $body -Encoding utf8
-          gh release create "v$v" --title "Rhubarb v$v" --notes-file release-body.md
+          gh release create "v$v" --title "Chaewon Jeopardy v$v" --notes-file release-body.md
           exit 0
-
-      - name: Fetch cloudflared (remote-play tunnel client)
-        if: steps.guard.outputs.skip == 'false'
-        shell: pwsh
-        run: node desktop/scripts/fetch-cloudflared.cjs
 
       - name: Build installer and upload to the release
         if: steps.guard.outputs.skip == 'false'
@@ -118,9 +132,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd desktop
-          npm ci
           npx electron-builder --win --publish always
 
 # (The installer's artifactName is version-free — see electron-builder.yml —
-# so releases/latest/download/Rhubarb-Setup.exe is permanent with no
+# so releases/latest/download/Chaewon-Jeopardy-Setup.exe is permanent with no
 # extra upload step, and each release page carries exactly one exe.)

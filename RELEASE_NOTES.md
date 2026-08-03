@@ -14,15 +14,7 @@
 
 ## v2.4.0
 
-We are Rhubarb now! 🌱 Same game, new name — and the biggest quality-of-life update yet.
-
-### New name: Rhubarb
-
-- Everything says Rhubarb — the app, the installer, the board, the shortcuts
-- Your boards, scores, and settings move over automatically; nothing to do
-- Board files now save as .rhubarb (old .jeopardy files open forever)
-- New permanent download link: github.com/acohen1/rhubarb — old links redirect
-- A proper update screen: watch the install happen instead of wondering if anything is
+Game night, leveled up — the biggest quality-of-life update yet:
 
 ### Game settings, all grown up
 
@@ -53,6 +45,10 @@ We are Rhubarb now! 🌱 Same game, new name — and the biggest quality-of-life
 - The board grid fills the window: a short board stretches to use the space instead of huddling tiny at the top
 - Shared boards finally keep their rules — exporting and importing no longer resets turn order and settings
 - Tidy media now speaks human: sizes show as KB / MB / GB, and the confirm tells you exactly how much you'll get back (nothing is ever deleted automatically — cleanup stays your call)
+
+### Smoother updates
+
+- A proper update screen arrives with this version: from your NEXT update onward, you'll watch the install happen instead of staring at nothing (this update is the one that installs it, so it still uses the old quiet restart)
 
 ## v2.3.0
 

@@ -110,7 +110,7 @@ export function AboutDialog({ open, onClose }: { open: boolean; onClose: () => v
           </span>
           <div>
             <div className="font-display text-ink text-lg font-bold tracking-wide">
-              Rhubarb
+              Chaewon Jeopardy
             </div>
             <div className="text-ink-muted text-sm">v{desktop.appVersion}</div>
           </div>
@@ -164,7 +164,7 @@ export function VersionChip() {
         type="button"
         onClick={() => setOpen(true)}
         className="text-ink-faint hover:text-ink mt-1.5 cursor-pointer text-xs tracking-wide transition-colors"
-        title="About Rhubarb"
+        title="About Chaewon Jeopardy"
       >
         v{desktop.appVersion}
       </button>

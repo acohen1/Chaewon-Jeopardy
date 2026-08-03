@@ -57,7 +57,7 @@ interface OverlayState {
 export function PlayMode({ boardId }: { boardId: string }) {
   const { data: board } = useSuspenseQuery(boardQuery(boardId))
   const actions = useGameActions(boardId)
-  usePageTitle(`${board.name} · Play — Rhubarb`)
+  usePageTitle(`${board.name} · Play — Chaewon Jeopardy`)
 
   // Lobby phase (edit → LOBBY → board): shown while the game is VIRGIN —
   // nothing played, nothing scored. Refreshing mid-game skips it; "Play
@@ -409,7 +409,7 @@ export function PlayMode({ boardId }: { boardId: string }) {
         </div>
         <div className="text-center">
           <h1 className="font-display text-accent text-2xl font-bold tracking-[0.3em]">
-            RHUBARB!
+            CHAEWON JEOPARDY!
           </h1>
           <p className="text-ink-muted mt-0.5 text-xs">{board.name}</p>
         </div>

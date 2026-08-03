@@ -3,7 +3,9 @@
 The Electron shell spawns this (PyInstaller one-file exe) with:
   PORT           — the port to bind (shell picks a free one)
   RHUBARB_HOST  — 127.0.0.1 by default; 0.0.0.0 enables the LAN/TV view
-  RHUBARB_DATA_DIR — %APPDATA%/Rhubarb
+  RHUBARB_DATA_DIR — %APPDATA%/Chaewon Jeopardy (the env names kept their
+                     rename-era spelling on purpose — shell and sidecar ship
+                     in lockstep and nobody outside ever sets them)
   FRONTEND_DIST  — path to the built frontend, served by FastAPI
 """
 from __future__ import annotations
@@ -19,7 +21,7 @@ def _wire_streams() -> None:
     the data dir, which doubles as the app's diagnosable backend log."""
     if sys.stdout is not None and sys.stderr is not None:
         return
-    log_dir = Path(os.environ.get("RHUBARB_DATA_DIR", Path.home() / ".rhubarb"))
+    log_dir = Path(os.environ.get("RHUBARB_DATA_DIR", Path.home() / ".chaewon-jeopardy"))
     log_dir.mkdir(parents=True, exist_ok=True)
     log = open(log_dir / "backend.log", "a", buffering=1, encoding="utf-8")
     sys.stdout = sys.stdout or log

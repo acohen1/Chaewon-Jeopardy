@@ -1,8 +1,8 @@
-# Rhubarb!
+# Chaewon Jeopardy!
 
 A party game-show builder + player: make a board of clue tiles, put it on the TV, and your friends' phones become the buzzers — on your wifi or across the internet. Vite/React/TypeScript frontend (TanStack Router + Query, Tailwind v4), FastAPI backend, shipped as a self-updating Electron desktop app.
 
-> Formerly known as "Chaewon Jeopardy." The original PyQt6 desktop app lives in [`legacy/`](legacy/) and remains runnable (see its README).
+> The original PyQt6 desktop app lives in [`legacy/`](legacy/) and remains runnable (see its README).
 
 ## Stack
 
@@ -59,7 +59,7 @@ Press <kbd>?</kbd> (<kbd>Shift</kbd>+<kbd>/</kbd> on US layouts) anywhere in the
 ## Boards & media
 
 - Boards live in a library (create / rename / duplicate / delete from the home page).
-- Export any board as a portable `.rhubarb` save package (board.json + assets); import accepts those, legacy `.jeopardy` packages, plain `.zip`, **and** bare `.json` saves from the original desktop app.
+- Export any board as a portable `.jeopardy` save package (board.json + assets); import accepts those, `.rhubarb` packages (from the brief unreleased rename-era builds), plain `.zip`, **and** bare `.json` saves from the original desktop app.
 - Media per slide: up to 4 items, any mix of image / GIF / video / audio. Slides with a single
   clip start playing on reveal (Game settings toggle); slides with several clips stay manual.
 

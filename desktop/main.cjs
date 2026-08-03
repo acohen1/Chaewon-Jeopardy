@@ -1,5 +1,10 @@
 /**
- * Rhubarb — Electron main process.
+ * Chaewon Jeopardy — Electron main process.
+ *
+ * (The sidecar exe, the RHUBARB_* env vars, and the GitHub repo name kept
+ * their rename-era spellings on purpose — they are invisible internals that
+ * ship in lockstep, exactly like the window.jeopardy bridge global did when
+ * the name briefly went the other way.)
  *
  * Responsibilities:
  *   - single-instance lock (second launch focuses window + forwards argv)
@@ -34,20 +39,49 @@ const isDev = process.env.RHUBARB_DEV === '1' || !app.isPackaged;
 // user activation — so allow it outright. Must be set before app 'ready'.
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
-// One-time rename-era migration: this app was "Chaewon Jeopardy" through
-// v2.3.0. Carry the whole data dir (settings, shell.log, and the default
-// board library inside it) to the Rhubarb name so nobody loses a thing.
-// Must run before ANYTHING touches the data dir, hence module top-level.
-(function migrateLegacyAppData() {
+// One-time un-rename migration: during the UNRELEASED v2.4.0 cycle the app
+// was briefly "Rhubarb" (dev builds only — no release ever shipped under
+// that name), and those builds moved the data dir to %APPDATA%\Rhubarb.
+// Carry the library back. Installed v2.3.0 machines never had a Rhubarb
+// dir, so this is a no-op everywhere except a machine that ran dev builds.
+// BOTH dirs can exist on such a machine (running installed v2.3.0 re-creates
+// the Chaewon dir with settings/logs but no boards) — in that case move only
+// the LIBRARY pieces (boards/*, defaults.json), never overwriting an
+// existing board and never touching settings/caches, so nothing is lost
+// whichever app wrote last. Must run before ANYTHING touches the data dir,
+// hence module top-level.
+(function migrateRenameEraAppData() {
   try {
     const appData = app.getPath('appData');
-    const oldDir = path.join(appData, 'Chaewon Jeopardy');
-    const newDir = path.join(appData, 'Rhubarb');
-    if (fs.existsSync(oldDir) && !fs.existsSync(newDir)) {
-      fs.renameSync(oldDir, newDir);
+    const oldDir = path.join(appData, 'Rhubarb');
+    const newDir = path.join(appData, 'Chaewon Jeopardy');
+    if (!fs.existsSync(oldDir)) return; // everywhere but a dev-build machine
+    if (!fs.existsSync(newDir)) {
+      fs.renameSync(oldDir, newDir); // clean flip: nothing to merge
+      return;
     }
+    const oldBoards = path.join(oldDir, 'boards');
+    const newBoards = path.join(newDir, 'boards');
+    if (fs.existsSync(oldBoards)) {
+      fs.mkdirSync(newBoards, { recursive: true });
+      for (const id of fs.readdirSync(oldBoards)) {
+        const from = path.join(oldBoards, id);
+        const to = path.join(newBoards, id);
+        try {
+          if (!fs.existsSync(to)) fs.renameSync(from, to);
+        } catch {
+          // Leave that board in the Rhubarb dir for manual rescue.
+        }
+      }
+    }
+    const oldDefaults = path.join(oldDir, 'defaults.json');
+    const newDefaults = path.join(newDir, 'defaults.json');
+    if (fs.existsSync(oldDefaults) && !fs.existsSync(newDefaults)) {
+      fs.renameSync(oldDefaults, newDefaults);
+    }
+    // The emptied Rhubarb dir (caches/settings/logs) stays for manual rescue.
   } catch {
-    // Fresh dir it is — the old one stays intact for manual rescue.
+    // Fresh dir it is — everything stays where it was for manual rescue.
   }
 })();
 const DEV_URL = 'http://localhost:5173';
@@ -70,13 +104,13 @@ let resolveBackendReady;
 const backendReady = new Promise((resolve) => { resolveBackendReady = resolve; });
 
 // ---------------------------------------------------------------------------
-// Shell log — %APPDATA%/Rhubarb/shell.log
+// Shell log — %APPDATA%/Chaewon Jeopardy/shell.log
 // Field failures (like a broken update) were undiagnosable without this.
 // ---------------------------------------------------------------------------
 
 function shellLog(line) {
   try {
-    const dir = path.join(app.getPath('appData'), 'Rhubarb');
+    const dir = path.join(app.getPath('appData'), 'Chaewon Jeopardy');
     fs.mkdirSync(dir, { recursive: true });
     fs.appendFileSync(
       path.join(dir, 'shell.log'),
@@ -265,9 +299,12 @@ async function waitForHealth(base, timeoutMs) {
 // Sidecar management
 // ---------------------------------------------------------------------------
 
-/** Default library location — the same directory the legacy app used. */
+/** Default library location — the same directory the legacy app used.
+ * NOTE: must stay in lockstep with productName ("Chaewon Jeopardy"):
+ * settings.json lives under app.getPath('userData'), which derives from
+ * productName, and the two only coincide because the names match. */
 function defaultDataDir() {
-  return path.join(app.getPath('appData'), 'Rhubarb');
+  return path.join(app.getPath('appData'), 'Chaewon Jeopardy');
 }
 
 /** Effective data directory: the user's persisted choice, else the default. */
@@ -350,7 +387,7 @@ async function startSidecar() {
     sidecar = null;
     if (!quitting && !respawning) {
       dialog.showErrorBox(
-        'Rhubarb',
+        'Chaewon Jeopardy',
         `The backend process exited unexpectedly (code ${code}). The app will now close.`
       );
       app.quit();
@@ -681,12 +718,12 @@ Add-Type -AssemblyName PresentationFramework
 [xml]$xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Rhubarb" Width="340" Height="180"
+        Title="Chaewon Jeopardy" Width="340" Height="180"
         WindowStyle="None" ResizeMode="NoResize" WindowStartupLocation="CenterScreen"
         Topmost="True" ShowInTaskbar="True" Background="#252525">
   <Border BorderBrush="#505050" BorderThickness="1">
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-      <TextBlock Text="RHUBARB!" Foreground="#7daf8d" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" FontFamily="Segoe UI" />
+      <TextBlock Text="CHAEWON JEOPARDY!" Foreground="#7daf8d" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" FontFamily="Segoe UI" />
       <TextBlock x:Name="StatusText" Text="Preparing update..." Foreground="#e5ddd5" FontSize="12" Margin="0,14,0,0" HorizontalAlignment="Center" FontFamily="Segoe UI" />
       <ProgressBar IsIndeterminate="True" Width="240" Height="6" Margin="0,12,0,0" Foreground="#7daf8d" Background="#38332e" BorderThickness="0" />
     </StackPanel>
@@ -710,7 +747,7 @@ $timer.Add_Tick({
       $status.Text = 'Installing update...'
     }
   } else {
-    $fresh = Get-Process -Name 'Rhubarb' -ErrorAction SilentlyContinue
+    $fresh = Get-Process -Name 'Chaewon Jeopardy' -ErrorAction SilentlyContinue
     if ($fresh) { Start-Sleep -Milliseconds 800; $window.Close() }
   }
 })
@@ -722,7 +759,7 @@ $window.Show()
 
 function showUpdateSplash() {
   try {
-    const splashPath = path.join(app.getPath('temp'), 'rhubarb-update-splash.ps1');
+    const splashPath = path.join(app.getPath('temp'), 'chaewon-jeopardy-update-splash.ps1');
     fs.writeFileSync(splashPath, UPDATE_SPLASH_PS1, 'utf8');
     spawn(
       'powershell.exe',
@@ -800,7 +837,7 @@ ipcMain.handle('jeopardy:storage-choose', async () => {
   }
 
   const picked = await dialog.showOpenDialog(mainWindow, {
-    title: 'Choose where Rhubarb stores your boards',
+    title: 'Choose where Chaewon Jeopardy stores your boards',
     defaultPath: getDataDir(),
     properties: ['openDirectory', 'createDirectory'],
   });
@@ -1076,7 +1113,7 @@ if (gotLock) {
         killSidecar();
         shellLog(`startup failed: ${err.message || err}`);
         dialog.showErrorBox(
-          'Rhubarb failed to start',
+          'Chaewon Jeopardy failed to start',
           `${err.message || err}`
         );
         app.quit();

@@ -1,4 +1,4 @@
-# Rhubarb — desktop shell
+# Chaewon Jeopardy — desktop shell
 
 Electron wrapper around the FastAPI backend (bundled as a PyInstaller sidecar,
 `rhubarb-backend.exe`) and the built Vite frontend. Plain CommonJS
@@ -23,8 +23,10 @@ npm run desktop:dev
 ```
 
 `main.cjs` treats a non-packaged app as dev automatically; you can also force
-it with the env var `JEOPARDY_DEV=1`. In dev the window loads
-`http://localhost:5173` and `.rhubarb` imports POST to `http://127.0.0.1:8000`.
+it with the env var `RHUBARB_DEV=1` (the RHUBARB_* env names kept their
+rename-era spelling on purpose — invisible internals that ship in lockstep).
+In dev the window loads `http://localhost:5173` and board-file imports POST
+to `http://127.0.0.1:8000`.
 
 ## Package (Windows installer)
 
@@ -38,22 +40,24 @@ npm run desktop:package
 npm run desktop:package:dir
 ```
 
-Output lands in `desktop/dist/` (`Rhubarb-Setup-<version>.exe`).
+Output lands in `desktop/dist/` (`Chaewon-Jeopardy-Setup.exe` — version-free
+on purpose: one name serves the updater feed AND the permanent
+releases/latest download link).
 
-The installer is one-click, per-user, registers the `.rhubarb` (and legacy `.jeopardy`) file
-association, and bundles:
+The installer is an assisted wizard (not one-click), per-user, registers the
+`.jeopardy` (and rename-era `.rhubarb`) file associations, and bundles:
 
 - `resources/rhubarb-backend.exe` — the FastAPI sidecar
 - `resources/frontend-dist` — the built SPA (served by the sidecar via
   the `FRONTEND_DIST` env var)
 
 At runtime the shell picks a free port, spawns the sidecar with
-`PORT` / `RHUBARB_DATA_DIR` (`%APPDATA%\Rhubarb`) /
-`FRONTEND_DIST` / `JEOPARDY_HOST` (persisted in
-`%APPDATA%\rhubarb\settings.json`, default `127.0.0.1`; set `host`
-there to `0.0.0.0` to expose the TV view on the LAN), waits for
-`GET /api/health`, then shows the window. The whole sidecar process tree is
-killed on quit.
+`PORT` / `RHUBARB_DATA_DIR` (`%APPDATA%\Chaewon Jeopardy`) /
+`FRONTEND_DIST` / `RHUBARB_HOST` (`127.0.0.1` by default; the Settings
+dialog's TV & wifi toggle persists the boolean `lan` in
+`%APPDATA%\Chaewon Jeopardy\settings.json`, which makes the shell pass
+`0.0.0.0` and pin port 8477), waits for `GET /api/health`, then shows the
+window. The whole sidecar process tree is killed on quit.
 
 ## Publish an update (branch flow)
 
