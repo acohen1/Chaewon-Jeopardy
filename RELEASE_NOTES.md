@@ -7,38 +7,52 @@
 <!-- as the release body / in-app "What's new", and FAILS the release if that -->
 <!-- section is missing - notes can't be stale or forgotten. -->
 <!-- Release prep = bump desktop/package.json + add a new section here, one commit. -->
-<!-- Plain lines and "- " bullets render best in-app. -->
+<!-- Plain lines and "- " bullets render best in-app. Subsections within a -->
+<!-- version use "###" headings (rendered as small accent headings in-app, -->
+<!-- h3 on GitHub). NEVER use two-hash subheadings: the in-app parser splits -->
+<!-- on those and would silently discard everything after one. -->
 
 ## v2.4.0
 
-We are Rhubarb now! 🌱 Same game, new name:
+We are Rhubarb now! 🌱 Same game, new name — and the biggest quality-of-life update yet.
+
+### New name: Rhubarb
 
 - Everything says Rhubarb — the app, the installer, the board, the shortcuts
 - Your boards, scores, and settings move over automatically; nothing to do
 - Board files now save as .rhubarb (old .jeopardy files open forever)
 - New permanent download link: github.com/acohen1/rhubarb — old links redirect
-- Invite over the internet now also lives in the mid-game Room panel
 - A proper update screen: watch the install happen instead of wondering if anything is
-- False-start lockout — buzzing before the host arms freezes YOUR buzzer for half a second, so mashing is a losing strategy and clean timing wins
-- Undo, everywhere in the editor: Ctrl+Z / Ctrl+Y now work inside the cell editor too — take back an accidental media delete, reorder, upload, or volume drag (one drop of several files undoes as one step)
-- Tidy media now speaks human: sizes show as KB / MB / GB instead of "1433.6 MB", and the confirm tells you exactly how much you'll get back (nothing is ever deleted automatically — cleanup stays your call)
-- New game and the podium's Play again now truly start fresh: the roster clears too — connected phones keep their seats and come back at $0 (the score-only and board-only reset tools are unchanged)
-- The editor's board grid now fills the window: a short board stretches to use the space instead of huddling tiny at the top
-- The clue screen got its TV moment: the timer is now a big draining ring (sage for buzz-in, amber for the answer clock) that turns urgent in the last seconds — and when somebody buzzes, their name slams onto the screen with couch-sized Correct / Wrong buttons, all in one corner card that never covers the question
-- Fixed: a wrong-answer lockout no longer follows a player into later questions — every fresh clue reopens the buzzers to everyone
-- Fixed: auto-played videos no longer start with the sound trailing the picture — autoplay now starts clips without the under-the-hood seek that knocked audio out of step
-- Both game clocks now take any custom length (1–600s) via a Custom… field in Game settings, not just the preset pills
-- The manual timer is now its own setting: with the buzz-in clock off, pressing T runs a hand-started buzz window at whatever length you choose (default 30s) — no more borrowing the answer clock's length
 
-Plus a proper Game settings menu (the old Rules button, all grown up):
+### Game settings, all grown up
 
-- Turn order, buzzers, media, and scoring — one organized place, in the editor and in play
-- Buzzers now arm themselves the moment a clue opens (switch it off to keep the classic read-first-then-arm flow)
-- Two game clocks on the timer ring: an optional time-to-buzz-in window once the buzzers arm, and a time-to-answer countdown once somebody claims it — steal rounds get their own fresh window
+- The old Rules button is now a full Game settings menu: turn order, buzzers, media, and scoring in one organized place — in the editor and in play
+- Buzzers arm themselves the moment a clue opens (switch it off to keep the classic read-first-then-arm flow)
+- Two game clocks: an optional time-to-buzz-in window once the buzzers arm, and a time-to-answer countdown once somebody claims it — steal rounds get their own fresh window
+- Every clock takes any custom length via a Custom… field, not just the preset pills
+- The manual timer is its own setting: with the buzz-in clock off, pressing T runs a hand-started buzz window at whatever length you choose
 - Slides with a single video or song start playing on reveal, automatically — slides with several clips stay manual so nothing talks over anything (and you can turn it all off)
 - Allow negative scores moved off the top bar and into Game settings
-- Shared boards finally keep their rules — exporting and importing no longer resets turn order and settings
 - As always: whatever you pick becomes the default for your next board
+
+### The clue screen, TV-first
+
+- The timer is now a big draining ring (sage for buzz-in, amber for the answer clock) that turns urgent in the last seconds
+- When somebody buzzes, their name slams onto the screen with couch-sized Correct / Wrong buttons — all in one corner card that never covers the question
+- False-start lockout: buzzing before the buzzers arm freezes YOUR buzzer for half a second, so mashing is a losing strategy and clean timing wins
+
+### Hosting & rounds
+
+- New game and the podium's Play again now truly start fresh: the roster clears too — connected phones keep their seats and come back at $0 (the score-only and board-only reset tools are unchanged)
+- Invite over the internet now also lives in the mid-game Room panel
+- Fixed: a wrong-answer lockout no longer follows a player into later questions — every fresh clue reopens the buzzers to everyone
+
+### Editor & library
+
+- Undo, everywhere: Ctrl+Z / Ctrl+Y now work inside the cell editor too — take back an accidental media delete, reorder, upload, or volume drag (one drop of several files undoes as one step)
+- The board grid fills the window: a short board stretches to use the space instead of huddling tiny at the top
+- Shared boards finally keep their rules — exporting and importing no longer resets turn order and settings
+- Tidy media now speaks human: sizes show as KB / MB / GB, and the confirm tells you exactly how much you'll get back (nothing is ever deleted automatically — cleanup stays your call)
 
 ## v2.3.0
 
