@@ -139,7 +139,7 @@ export function AboutDialog({ open, onClose }: { open: boolean; onClose: () => v
         <p className="text-ink-faint mt-5 text-xs">
           Updates install automatically on restart.{' '}
           <a
-            href="https://github.com/acohen1/rhubarb/releases"
+            href="https://github.com/acohen1/Chaewon-Jeopardy/releases"
             target="_blank"
             rel="noreferrer"
             className="text-accent hover:text-accent-bright underline-offset-2 hover:underline"

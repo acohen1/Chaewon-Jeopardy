@@ -70,15 +70,15 @@ fileAssociations:
     name: Jeopardy Board (legacy)
     icon: build/icon.ico
 
-# Auto-update feed: GitHub Releases on this repo. The GitHub repo itself
-# stayed named "rhubarb" through the aborted rename (renaming a repo is an
-# outward-facing act; old jeopardy links redirect here and this name works)
-# — the app's identity does NOT depend on the repo name. The release workflow
+# Auto-update feed: GitHub Releases on this repo (renamed
+# jeopardy -> rhubarb -> Chaewon-Jeopardy; GitHub redirects every previous
+# name, which is how v2.3.0 installs pointing at "jeopardy" still update —
+# but PUBLISHING must target the actual current name). The release workflow
 # (.github/workflows/release.yml) publishes on every push to main with a new
 # version in desktop/package.json. NOTE: installed apps can only download
 # updates if the repo (or at least its releases) is PUBLIC.
 publish:
   provider: github
   owner: acohen1
-  repo: rhubarb
+  repo: Chaewon-Jeopardy
   releaseType: release
