@@ -8,6 +8,7 @@ import { CellEditorDialog } from '@/components/editor/CellEditorDialog'
 import { EditorToolbar } from '@/components/editor/EditorToolbar'
 import { PlayerPanel } from '@/components/editor/PlayerPanel'
 import { useBoardDraft } from '@/components/editor/useBoardDraft'
+import { ClueOverlay } from '@/components/play/ClueOverlay'
 import { GameSettingsDialog } from '@/components/play/GameSettingsDialog'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { toast } from '@/components/ui/Toaster'
@@ -35,6 +36,8 @@ function Editor({ initial }: { initial: Board }) {
   const navigate = useNavigate()
   const { board, status, update, flush, undo, redo, canUndo, canRedo } = useBoardDraft(initial)
   const [editing, setEditing] = useState<{ row: number; col: number } | null>(null)
+  // Full-screen read-only look at a cell (right-click → Preview cell).
+  const [previewing, setPreviewing] = useState<{ row: number; col: number } | null>(null)
   // Non-null while the "some cells have no answer" pre-play warning is up.
   const [playWarning, setPlayWarning] = useState<string | null>(null)
   // Game settings are PLAY-mode state (the draft's autosave can't touch them
@@ -174,6 +177,9 @@ function Editor({ initial }: { initial: Board }) {
   }
 
   const editingCell = editing ? board.cells[editing.row][editing.col] : null
+  // Preview reads the DRAFT, so it shows edits that the debounced autosave
+  // hasn't flushed yet — the point is checking what you just typed.
+  const previewCell = previewing ? board.cells[previewing.row][previewing.col] : null
 
   return (
     <main className="flex h-dvh min-h-0 flex-col">
@@ -198,6 +204,7 @@ function Editor({ initial }: { initial: Board }) {
             board={board}
             onUpdate={update}
             onEditCell={(row, col) => setEditing({ row, col })}
+            onPreviewCell={(row, col) => setPreviewing({ row, col })}
           />
         </div>
         <PlayerPanel
@@ -236,6 +243,25 @@ function Editor({ initial }: { initial: Board }) {
           title={`${truncate(board.categories[editing.col]?.trim() || `Category ${editing.col + 1}`, 24)} · ${money(editingCell.value)}`}
           onSave={(q, a) => commitCell(editing.row, editing.col, q, a)}
           onCancel={() => setEditing(null)}
+        />
+      )}
+
+      {/* Preview: the play-mode clue screen itself, so what you see here is
+          what the TV shows — no separate renderer to drift out of sync.
+          Autoplay follows the board's own Game setting for the same reason.
+          Not a Dialog on purpose: ClueOverlay's A/Q/Esc keys run through
+          useHotkeys, which suspends while any modal is open. */}
+      {previewing && previewCell && (
+        <ClueOverlay
+          key={`preview-${previewing.row}-${previewing.col}`}
+          boardId={board.id}
+          cell={previewCell}
+          players={[]}
+          allowNegatives={false}
+          onAward={() => undefined}
+          onClose={() => setPreviewing(null)}
+          autoplayMedia={liveBoard.autoplay_media}
+          preview
         />
       )}
     </main>

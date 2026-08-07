@@ -11,7 +11,10 @@
  * question/answer pages behave identically except awards/deducts use the
  * wager and the top badge shows '★ wager'.
  * Only the current page's SlideView is mounted (keyed) so hidden media never
- * plays; closing = unmount, which stops all media. */
+ * plays; closing = unmount, which stops all media.
+ * PREVIEW mode (editor right-click → Preview cell) reuses this component as
+ * the single source of truth for what a clue looks like — same pages, same
+ * media, same typography — with every host tool suppressed. */
 import { clsx } from 'clsx'
 import { Zap } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -57,6 +60,10 @@ export interface ClueOverlayProps {
   manualSeconds?: number
   /** Auto-play a slide's media on reveal when it has exactly one clip. */
   autoplayMedia?: boolean
+  /** Editor "Preview cell": the real clue screen with every host tool off —
+   * no awards, no buzzers, no timers, no wager splash, and (by construction
+   * upstream) nothing is ever marked used. Read-only look at the Q/A pages. */
+  preview?: boolean
 }
 
 /** Inline so it reliably beats the variant's utility classes (legacy _flash_button). */
@@ -82,10 +89,13 @@ export function ClueOverlay({
   answerSeconds = 0,
   manualSeconds = 30,
   autoplayMedia = false,
+  preview = false,
 }: ClueOverlayProps) {
   /* A bonus tile only gets the splash + wager on a FRESH open — the snapshot
    * arrives with used:false exactly then; Review snapshots used:true. */
-  const isBonus = cell.bonus && !cell.used
+  // Preview never opens on the wager splash: there are no players to wager,
+  // and the star is an editor concept the board card already shows.
+  const isBonus = cell.bonus && !cell.used && !preview
   const [page, setPage] = useState<'bonus' | 'question' | 'answer'>(
     isBonus ? 'bonus' : 'question',
   )
@@ -301,12 +311,14 @@ export function ClueOverlay({
               />
             </div>
           ) : (
-            <ClueTimer
-              buzzSeconds={buzzSeconds}
-              answerSeconds={answerSeconds}
-              manualSeconds={manualSeconds}
-              buzzer={hosting ? buzzer : null}
-            />
+            !preview && (
+              <ClueTimer
+                buzzSeconds={buzzSeconds}
+                answerSeconds={answerSeconds}
+                manualSeconds={manualSeconds}
+                buzzer={hosting ? buzzer : null}
+              />
+            )
           )}
           {page === 'answer' && (
             <Button variant="ghost" size="sm" onClick={() => setPage('question')}>
@@ -378,7 +390,14 @@ export function ClueOverlay({
         </div>
       )}
 
-      {/* Award rows (not while the wager is still being set) */}
+      {/* Award rows — replaced by a hint in preview: nothing here is real, and
+          the line doubles as the keyboard legend for the two pages. */}
+      {preview ? (
+        <p className="text-ink-faint shrink-0 text-center text-sm">
+          Preview — nothing is scored.{' '}
+          <Kbd>A</Kbd> reveals the answer · <Kbd>Q</Kbd> goes back · <Kbd>Esc</Kbd> closes
+        </p>
+      ) : (
       <div className={clsx('shrink-0 space-y-3', page === 'bonus' && 'hidden')}>
         {players.length === 0 ? (
           <p className="text-ink-muted text-center text-sm">
@@ -416,6 +435,7 @@ export function ClueOverlay({
           </>
         )}
       </div>
+      )}
     </div>
   )
 }

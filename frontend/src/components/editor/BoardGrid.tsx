@@ -1,8 +1,8 @@
 /** Editable board grid — category header inputs, row-value inputs, and cell
- * cards. Right-click on a cell offers Copy / Paste / Clear, a bonus-tile
- * toggle (star badge shown only in the editor — secret in play mode), plus
- * "Swap with…" any other row in the same column (slides move, values stay —
- * legacy parity). */
+ * cards. Right-click on a cell offers Preview (see it as the TV will) and
+ * Copy / Paste / Clear, a bonus-tile toggle (star badge shown only in the
+ * editor — secret in play mode), plus "Swap with…" any other row in the same
+ * column (slides move, values stay — legacy parity). */
 import { Star, TriangleAlert } from 'lucide-react'
 import { Fragment, useEffect, useState } from 'react'
 
@@ -23,9 +23,11 @@ export interface BoardGridProps {
   board: Board
   onUpdate: (updater: (b: Board) => Board) => void
   onEditCell: (row: number, col: number) => void
+  /** Open this cell full-screen exactly as play mode shows it (read-only). */
+  onPreviewCell: (row: number, col: number) => void
 }
 
-export function BoardGrid({ board, onUpdate, onEditCell }: BoardGridProps) {
+export function BoardGrid({ board, onUpdate, onEditCell, onPreviewCell }: BoardGridProps) {
   const [menu, setMenu] = useState<ContextMenuState | null>(null)
   const [clearing, setClearing] = useState<{ row: number; col: number } | null>(null)
 
@@ -112,6 +114,10 @@ export function BoardGrid({ board, onUpdate, onEditCell }: BoardGridProps) {
   const openMenu = (e: React.MouseEvent, row: number, col: number) => {
     e.preventDefault()
     const items: ContextMenuItem[] = [
+      // Mirrors play mode's right-click → Review: the real clue screen,
+      // nothing scored, nothing marked used.
+      { label: 'Preview cell', onSelect: () => onPreviewCell(row, col) },
+      { type: 'separator' },
       { label: 'Copy cell', onSelect: () => copyCell(row, col) },
       {
         label: 'Paste cell',

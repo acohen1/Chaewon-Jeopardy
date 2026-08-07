@@ -95,7 +95,7 @@ export function HotkeysDialog({ open, onClose }: { open: boolean; onClose: () =>
         <ul className="text-ink-muted grid gap-x-10 gap-y-1 text-[13px] sm:grid-cols-2">
           <li>
             <b className="text-ink font-semibold">Right-click a board cell</b> — Review / Reset
-            (play) · Copy / Paste / Clear / Swap (editor)
+            (play) · Preview / Copy / Paste / Clear / Swap (editor)
           </li>
           <li>
             <b className="text-ink font-semibold">Click a score</b> — edit it directly (host
